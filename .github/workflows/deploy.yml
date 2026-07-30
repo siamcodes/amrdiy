@@ -232,14 +232,11 @@ jobs:
               cd "$VPS_PATH/backend"
               npm ci --omit=dev
 
-              if npm exec -- pm2 describe amrdiy-backend >/dev/null 2>&1; then
-                npm exec -- pm2 restart amrdiy-backend --update-env
-              else
-                npm exec -- pm2 start server.js \
-                  --name amrdiy-backend \
-                  --cwd "$VPS_PATH/backend"
-              fi
-
+              npm exec -- pm2 delete amrdiy-backend >/dev/null 2>&1 || true
+              npm exec -- pm2 start server.js \
+                --name amrdiy-backend \
+                --cwd "$VPS_PATH/backend" \
+                --update-env
               npm exec -- pm2 save
           REMOTE_SCRIPT
 
