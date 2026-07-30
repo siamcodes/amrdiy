@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 440" role="img" aria-labelledby="title desc">
+  <title id="title">AMR DIY</title>
+  <desc id="desc">AMR DIY wordmark with a small autonomous mobile robot</desc>
+  <defs>
+    <linearGradient id="navy" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#17334a"/>
+      <stop offset="1" stop-color="#071a2b"/>
+    </linearGradient>
+    <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff7a00"/>
+      <stop offset="1" stop-color="#f45100"/>
+    </linearGradient>
+    <linearGradient id="top" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#536579"/>
+      <stop offset="1" stop-color="#26384a"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-30%" width="140%" height="180%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#061521" flood-opacity=".18"/>
+    </filter>
+  </defs>
+
+  <path d="M260 116C345 5 485-4 580 63" fill="none" stroke="url(#navy)" stroke-width="19"/>
+  <path d="M585 75c20 14 37 30 51 47" fill="none" stroke="url(#orange)" stroke-width="19"/>
+  <path d="M224 322c22 36 49 63 82 82" fill="none" stroke="url(#navy)" stroke-width="19"/>
+  <path d="M589 402c30-20 56-47 76-80" fill="none" stroke="url(#navy)" stroke-width="19"/>
+
+  <g font-family="Arial Black, Arial, sans-serif" font-size="170" font-weight="900"
+     font-style="italic" letter-spacing="-15">
+    <text x="38" y="276" fill="url(#navy)">AMR</text>
+    <text x="520" y="276" fill="url(#orange)">DIY</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <path d="M330 337l38-17h164l39 17-10 17H340z" fill="url(#top)"/>
+    <path d="M337 359h228l14 16-8 48H329l-8-48z" fill="url(#navy)"/>
+    <path d="M329 358l21-12h205l18 12-7 16H336z" fill="url(#orange)"/>
+    <path d="M340 375h226l5 15H334z" fill="#0b2032" opacity=".65"/>
+    <ellipse cx="327" cy="397" rx="22" ry="37" fill="#071827"/>
+    <ellipse cx="327" cy="397" rx="11" ry="22" fill="#7d8d9d"/>
+    <ellipse cx="574" cy="397" rx="22" ry="37" fill="#071827"/>
+    <ellipse cx="574" cy="397" rx="11" ry="22" fill="#7d8d9d"/>
+    <rect x="378" y="377" width="145" height="35" rx="12" fill="#071827"/>
+    <rect x="401" y="389" width="17" height="10" rx="5" fill="#f5f8fa"/>
+    <rect x="435" y="389" width="17" height="10" rx="5" fill="#f5f8fa"/>
+    <circle cx="493" cy="394" r="6" fill="#e8f3fa"/>
+  </g>
+</svg>
