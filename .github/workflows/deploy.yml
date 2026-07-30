@@ -89,6 +89,18 @@ jobs:
             }
           done
 
+          configured_port="$(
+            printf '%s\n' "$BACKEND_ENV" \
+              | sed -n 's/^PORT=\([0-9][0-9]*\)$/\1/p' \
+              | tail -n 1
+          )"
+          configured_port="${configured_port:-8000}"
+          (( configured_port >= 1 && configured_port <= 65535 )) || {
+            echo "::error::PORT in BACKEND_ENV must be between 1 and 65535"
+            exit 1
+          }
+          printf 'BACKEND_PORT=%s\n' "$configured_port" >> "$GITHUB_ENV"
+
       - name: Install and validate backend
         working-directory: backend
         run: |
@@ -249,3 +261,29 @@ jobs:
                'http://127.0.0.1:${BACKEND_PORT}/api/health' && \
              curl --fail --silent --show-error \
                'http://127.0.0.1/api/health'"
+
+      - name: Diagnose VPS deployment failure
+        if: failure()
+        continue-on-error: true
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PATH: ${{ secrets.VPS_PATH }}
+        run: |
+          ssh -o BatchMode=yes -o IdentitiesOnly=yes \
+            -i "$HOME/.ssh/amrdiy_deploy_key" \
+            -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
+            "VPS_PATH='$VPS_PATH' bash -s" <<'REMOTE_SCRIPT'
+              export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+              if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+                # shellcheck disable=SC1091
+                . "$NVM_DIR/nvm.sh"
+                nvm use 24.18.0 >/dev/null
+              fi
+
+              cd "$VPS_PATH/backend"
+              npm exec -- pm2 describe amrdiy-backend || true
+              npm exec -- pm2 logs amrdiy-backend --nostream --lines 80 || true
+          REMOTE_SCRIPT
