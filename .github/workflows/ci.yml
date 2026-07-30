@@ -19,6 +19,9 @@ jobs:
     name: Frontend test and build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      VITE_API: http://127.0.0.1:8000/api
+      VITE_STRIPE_KEY: pk_test_ci_placeholder
     defaults:
       run:
         working-directory: frontend

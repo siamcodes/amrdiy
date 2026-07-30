@@ -19,6 +19,15 @@ app.use(cors({
     credentials: true,
 }));
 
+app.get("/api/health", (_req, res) => {
+    const databaseReady = mongoose.connection.readyState === 1;
+    res.status(databaseReady ? 200 : 503).json({
+        status: databaseReady ? "ok" : "unavailable",
+        database: databaseReady ? "connected" : "disconnected",
+        uptime: Math.round(process.uptime()),
+    });
+});
+
 const start = async () => {
     try {
         await mongoose.connect(env.mongoUri);

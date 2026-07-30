@@ -1,0 +1,232 @@
+name: Deploy AMRDIY to Debian VPS
+
+on:
+  workflow_run:
+    workflows: ["AMR DIY CI"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: amrdiy-production
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "24.18.0"
+  BACKEND_PORT: ${{ vars.BACKEND_PORT || '8000' }}
+
+jobs:
+  deploy:
+    name: Build and deploy production
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: production
+
+    steps:
+      - name: Checkout tested revision
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Validate deployment configuration
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PATH: ${{ secrets.VPS_PATH }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+          BACKEND_ENV: ${{ secrets.BACKEND_ENV }}
+          FRONTEND_ENV: ${{ secrets.FRONTEND_ENV }}
+        run: |
+          set -euo pipefail
+
+          for name in VPS_HOST VPS_PORT VPS_USER VPS_PATH VPS_SSH_KEY \
+            VPS_KNOWN_HOSTS BACKEND_ENV FRONTEND_ENV; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Missing production secret: $name"
+              exit 1
+            fi
+          done
+
+          [[ "$VPS_PORT" =~ ^[0-9]+$ ]] || {
+            echo "::error::VPS_PORT must be numeric"
+            exit 1
+          }
+
+          [[ "$VPS_PATH" =~ ^/[A-Za-z0-9._/-]+$ && "$VPS_PATH" != "/" ]] || {
+            echo "::error::VPS_PATH must be a safe absolute path and must not be /"
+            exit 1
+          }
+
+          for name in CLIENT_URL MONGO_URI AUTH_SECRET AUTH_URL; do
+            printf '%s\n' "$BACKEND_ENV" | grep -q "^${name}=" || {
+              echo "::error::BACKEND_ENV is missing $name"
+              exit 1
+            }
+          done
+
+          for name in VITE_API VITE_STRIPE_KEY; do
+            printf '%s\n' "$FRONTEND_ENV" | grep -q "^${name}=" || {
+              echo "::error::FRONTEND_ENV is missing $name"
+              exit 1
+            }
+          done
+
+      - name: Install and validate backend
+        working-directory: backend
+        run: |
+          npm ci
+          npm run check
+          find . -path ./node_modules -prune -o -type f -name '*.js' -print0 \
+            | xargs -0 -n1 node --check
+
+      - name: Install, test and build frontend
+        working-directory: frontend
+        shell: bash
+        env:
+          FRONTEND_ENV: ${{ secrets.FRONTEND_ENV }}
+        run: |
+          set -euo pipefail
+          umask 077
+          printf '%s\n' "$FRONTEND_ENV" > .env.production
+          npm ci
+          VITE_API=http://127.0.0.1:8000/api \
+            VITE_STRIPE_KEY=pk_test_ci_placeholder \
+            npm test -- --passWithNoTests
+          npm run build
+          test -f build/index.html
+
+      - name: Configure SSH
+        shell: bash
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$VPS_SSH_KEY" > "$HOME/.ssh/amrdiy_deploy_key"
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/amrdiy_deploy_key" "$HOME/.ssh/known_hosts"
+
+      - name: Test VPS connection and prepare directories
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PATH: ${{ secrets.VPS_PATH }}
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes -o IdentitiesOnly=yes \
+            -i "$HOME/.ssh/amrdiy_deploy_key" \
+            -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
+            "mkdir -p '$VPS_PATH/backend' '$VPS_PATH/frontend'"
+
+      - name: Upload backend
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PATH: ${{ secrets.VPS_PATH }}
+        run: |
+          set -euo pipefail
+          rsync -az --delete \
+            --exclude='node_modules' \
+            --exclude='.env' \
+            --exclude='coverage' \
+            --exclude='.git' \
+            -e "ssh -o BatchMode=yes -o IdentitiesOnly=yes -i $HOME/.ssh/amrdiy_deploy_key -p $VPS_PORT" \
+            backend/ "$VPS_USER@$VPS_HOST:$VPS_PATH/backend/"
+
+      - name: Upload frontend build
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PATH: ${{ secrets.VPS_PATH }}
+        run: |
+          set -euo pipefail
+          rsync -az --delete \
+            -e "ssh -o BatchMode=yes -o IdentitiesOnly=yes -i $HOME/.ssh/amrdiy_deploy_key -p $VPS_PORT" \
+            frontend/build/ "$VPS_USER@$VPS_HOST:$VPS_PATH/frontend/"
+
+      - name: Create backend environment file
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PATH: ${{ secrets.VPS_PATH }}
+          BACKEND_ENV: ${{ secrets.BACKEND_ENV }}
+        run: |
+          set -euo pipefail
+          printf '%s\n' "$BACKEND_ENV" | ssh \
+            -o BatchMode=yes -o IdentitiesOnly=yes \
+            -i "$HOME/.ssh/amrdiy_deploy_key" \
+            -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
+            "umask 077; cat > '$VPS_PATH/backend/.env.tmp' && mv '$VPS_PATH/backend/.env.tmp' '$VPS_PATH/backend/.env'"
+
+      - name: Install production dependencies and reload PM2
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PATH: ${{ secrets.VPS_PATH }}
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes -o IdentitiesOnly=yes \
+            -i "$HOME/.ssh/amrdiy_deploy_key" \
+            -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
+            "VPS_PATH='$VPS_PATH' bash -s" <<'REMOTE_SCRIPT'
+              set -euo pipefail
+              export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
+              cd "$VPS_PATH/backend"
+              npm ci --omit=dev
+
+              if pm2 describe amrdiy-backend >/dev/null 2>&1; then
+                pm2 restart amrdiy-backend --update-env
+              else
+                pm2 start server.js --name amrdiy-backend --cwd "$VPS_PATH/backend"
+              fi
+
+              pm2 save
+          REMOTE_SCRIPT
+
+      - name: Verify deployment
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PATH: ${{ secrets.VPS_PATH }}
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes -o IdentitiesOnly=yes \
+            -i "$HOME/.ssh/amrdiy_deploy_key" \
+            -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
+            "test -f '$VPS_PATH/frontend/index.html' && \
+             curl --retry 6 --retry-delay 5 --retry-connrefused \
+               --fail --silent --show-error \
+               'http://127.0.0.1:${BACKEND_PORT}/api/health' && \
+             curl --fail --silent --show-error \
+               'http://127.0.0.1/api/health'"
