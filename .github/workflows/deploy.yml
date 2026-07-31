@@ -181,6 +181,22 @@ jobs:
             -e "ssh -o BatchMode=yes -o IdentitiesOnly=yes -i $HOME/.ssh/amrdiy_deploy_key -p $VPS_PORT" \
             frontend/build/ "$VPS_USER@$VPS_HOST:$VPS_PATH/frontend/"
 
+      - name: Allow Nginx to read frontend files
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PATH: ${{ secrets.VPS_PATH }}
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes -o IdentitiesOnly=yes \
+            -i "$HOME/.ssh/amrdiy_deploy_key" \
+            -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
+            "chmod o+x '$VPS_PATH' && \
+             find '$VPS_PATH/frontend' -type d -exec chmod 755 {} + && \
+             find '$VPS_PATH/frontend' -type f -exec chmod 644 {} +"
+
       - name: Create backend environment file
         shell: bash
         env:
@@ -289,6 +305,8 @@ jobs:
              curl --retry 6 --retry-delay 5 --retry-connrefused \
                --fail --silent --show-error \
                'http://127.0.0.1:${BACKEND_PORT}/api/health' || { echo '::error title=Backend health check::Backend did not respond on port ${BACKEND_PORT}'; exit 1; }; \
+             curl --fail --silent --show-error --output /dev/null \
+               'http://127.0.0.1/' || { echo '::error title=Frontend health check::Nginx cannot serve the frontend index'; exit 1; }; \
              curl --fail --silent --show-error \
                'http://127.0.0.1/api/health' || echo '::warning title=Reverse proxy health check::Nginx does not expose /api/health on port 80; verify that FRONTEND_ENV VITE_API points to the backend URL'"
 
