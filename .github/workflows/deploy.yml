@@ -212,32 +212,46 @@ jobs:
             "VPS_PATH='$VPS_PATH' bash -s" <<'REMOTE_SCRIPT'
               set -euo pipefail
 
+              DEPLOY_STAGE="initialize"
+              trap 'rc=$?; printf "::error title=VPS deploy stage failed::Stage %s exited with code %s\n" "$DEPLOY_STAGE" "$rc"; exit "$rc"' ERR
+
+              DEPLOY_STAGE="load-nvm"
               export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
               if [[ -s "$NVM_DIR/nvm.sh" ]]; then
                 # shellcheck disable=SC1091
                 . "$NVM_DIR/nvm.sh"
+                DEPLOY_STAGE="nvm-install-node"
                 nvm install 24.18.0
+                DEPLOY_STAGE="nvm-use-node"
                 nvm use 24.18.0
               fi
 
+              DEPLOY_STAGE="validate-node"
               command -v node >/dev/null || {
                 echo "Node.js was not found on the VPS"
                 exit 1
               }
+              DEPLOY_STAGE="validate-npm"
               command -v npm >/dev/null || {
                 echo "npm was not found on the VPS"
                 exit 1
               }
 
+              DEPLOY_STAGE="change-backend-directory"
               cd "$VPS_PATH/backend"
+              DEPLOY_STAGE="npm-ci-production"
               npm ci --omit=dev
 
+              DEPLOY_STAGE="pm2-delete-old-process"
               npm exec -- pm2 delete amrdiy-backend >/dev/null 2>&1 || true
+              DEPLOY_STAGE="pm2-start-backend"
               npm exec -- pm2 start server.js \
                 --name amrdiy-backend \
                 --cwd "$VPS_PATH/backend" \
                 --update-env
+              DEPLOY_STAGE="pm2-save-process-list"
               npm exec -- pm2 save
+              DEPLOY_STAGE="complete"
           REMOTE_SCRIPT
 
       - name: Verify deployment
@@ -281,6 +295,8 @@ jobs:
               fi
 
               cd "$VPS_PATH/backend"
+              pm2_pid="$(npm exec -- pm2 pid amrdiy-backend 2>/dev/null || true)"
+              printf '::error title=PM2 backend diagnostics::Process PID: %s\n' "${pm2_pid:-not-running}"
               npm exec -- pm2 describe amrdiy-backend || true
               npm exec -- pm2 logs amrdiy-backend --nostream --lines 80 || true
           REMOTE_SCRIPT
