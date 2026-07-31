@@ -283,12 +283,12 @@ jobs:
           ssh -o BatchMode=yes -o IdentitiesOnly=yes \
             -i "$HOME/.ssh/amrdiy_deploy_key" \
             -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
-            "test -f '$VPS_PATH/frontend/index.html' && \
+            "test -f '$VPS_PATH/frontend/index.html' || { echo '::error title=Frontend health check::Frontend index.html is missing'; exit 1; }; \
              curl --retry 6 --retry-delay 5 --retry-connrefused \
                --fail --silent --show-error \
-               'http://127.0.0.1:${BACKEND_PORT}/api/health' && \
+               'http://127.0.0.1:${BACKEND_PORT}/api/health' || { echo '::error title=Backend health check::Backend did not respond on port ${BACKEND_PORT}'; exit 1; }; \
              curl --fail --silent --show-error \
-               'http://127.0.0.1/api/health'"
+               'http://127.0.0.1/api/health' || { echo '::error title=Reverse proxy health check::Nginx did not expose /api/health on port 80'; exit 1; }"
 
       - name: Diagnose VPS deployment failure
         if: failure()
@@ -314,6 +314,12 @@ jobs:
               cd "$VPS_PATH/backend"
               pm2_pid="$(./node_modules/.bin/pm2 pid amrdiy-backend 2>/dev/null || true)"
               printf '::error title=PM2 backend diagnostics::Process PID: %s\n' "${pm2_pid:-not-running}"
+              pm2_summary="$(
+                ./node_modules/.bin/pm2 jlist 2>/dev/null \
+                  | node -e 'let value=""; process.stdin.on("data", chunk => value += chunk).on("end", () => { const item = JSON.parse(value || "[]").find(entry => entry.name === "amrdiy-backend"); const env = item?.pm2_env || {}; console.log(`status=${env.status || "missing"}, restarts=${env.restart_time ?? 0}, exit_code=${env.exit_code ?? "unknown"}`); })' \
+                  2>/dev/null || true
+              )"
+              printf '::error title=PM2 backend state::%s\n' "${pm2_summary:-unavailable}"
               for log_file in \
                 "$HOME/.pm2/logs/amrdiy-backend-error.log" \
                 "$HOME/.pm2/logs/amrdiy-backend-out.log"; do
