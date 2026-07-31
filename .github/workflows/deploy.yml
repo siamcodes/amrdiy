@@ -236,6 +236,21 @@ jobs:
 
               DEPLOY_STAGE="change-backend-directory"
               cd "$VPS_PATH/backend"
+
+              DEPLOY_STAGE="validate-local-mongodb"
+              mongo_uri="$(sed -n 's/^MONGO_URI=//p' .env | tail -n 1)"
+              if [[ "$mongo_uri" == mongodb://*127.0.0.1:27018* || "$mongo_uri" == mongodb://*localhost:27018* ]]; then
+                if ! timeout 2 bash -c '</dev/tcp/127.0.0.1/27018' 2>/dev/null; then
+                  if timeout 2 bash -c '</dev/tcp/127.0.0.1/27017' 2>/dev/null; then
+                    sed -i '/^MONGO_URI=/ { s#127\.0\.0\.1:27018#127.0.0.1:27017#; s#localhost:27018#127.0.0.1:27017#; }' .env
+                    echo "MongoDB was detected on port 27017; corrected the local production connection port."
+                  else
+                    echo "::error title=MongoDB unavailable::No MongoDB service is listening on local ports 27018 or 27017. Update MONGO_URI in the BACKEND_ENV secret or start MongoDB on the VPS."
+                    exit 1
+                  fi
+                fi
+              fi
+
               DEPLOY_STAGE="npm-ci-production"
               npm ci --omit=dev
 
