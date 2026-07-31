@@ -216,6 +216,8 @@ jobs:
               trap 'rc=$?; printf "::error title=VPS deploy stage failed::Stage %s exited with code %s\n" "$DEPLOY_STAGE" "$rc"; exit "$rc"' ERR
 
               DEPLOY_STAGE="configure-node-path"
+              export PM2_HOME="$VPS_PATH/.pm2"
+              mkdir -p "$PM2_HOME"
               NVM_NODE_BIN="$HOME/.nvm/versions/node/v24.18.0/bin"
               if [[ -x "$NVM_NODE_BIN/node" && -x "$NVM_NODE_BIN/npm" ]]; then
                 export PATH="$NVM_NODE_BIN:/usr/local/bin:/usr/bin:/bin"
@@ -257,8 +259,8 @@ jobs:
               DEPLOY_STAGE="pm2-delete-old-process"
               ./node_modules/.bin/pm2 delete amrdiy-backend >/dev/null 2>&1 || true
               for log_file in \
-                "$HOME/.pm2/logs/amrdiy-backend-error.log" \
-                "$HOME/.pm2/logs/amrdiy-backend-out.log"; do
+                "$PM2_HOME/logs/amrdiy-backend-error.log" \
+                "$PM2_HOME/logs/amrdiy-backend-out.log"; do
                 [[ -f "$log_file" ]] && : > "$log_file"
               done
               DEPLOY_STAGE="pm2-start-backend"
@@ -304,6 +306,7 @@ jobs:
             -i "$HOME/.ssh/amrdiy_deploy_key" \
             -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
             "VPS_PATH='$VPS_PATH' bash -s" <<'REMOTE_SCRIPT'
+              export PM2_HOME="$VPS_PATH/.pm2"
               NVM_NODE_BIN="$HOME/.nvm/versions/node/v24.18.0/bin"
               if [[ -x "$NVM_NODE_BIN/node" && -x "$NVM_NODE_BIN/npm" ]]; then
                 export PATH="$NVM_NODE_BIN:/usr/local/bin:/usr/bin:/bin"
@@ -321,8 +324,8 @@ jobs:
               )"
               printf '::error title=PM2 backend state::%s\n' "${pm2_summary:-unavailable}"
               for log_file in \
-                "$HOME/.pm2/logs/amrdiy-backend-error.log" \
-                "$HOME/.pm2/logs/amrdiy-backend-out.log"; do
+                "$PM2_HOME/logs/amrdiy-backend-error.log" \
+                "$PM2_HOME/logs/amrdiy-backend-out.log"; do
                 [[ -f "$log_file" ]] || continue
                 safe_error="$(
                   tail -n 100 "$log_file" \
