@@ -255,14 +255,19 @@ jobs:
               npm ci --omit=dev
 
               DEPLOY_STAGE="pm2-delete-old-process"
-              npm exec -- pm2 delete amrdiy-backend >/dev/null 2>&1 || true
+              ./node_modules/.bin/pm2 delete amrdiy-backend >/dev/null 2>&1 || true
+              for log_file in \
+                "$HOME/.pm2/logs/amrdiy-backend-error.log" \
+                "$HOME/.pm2/logs/amrdiy-backend-out.log"; do
+                [[ -f "$log_file" ]] && : > "$log_file"
+              done
               DEPLOY_STAGE="pm2-start-backend"
-              npm exec -- pm2 start server.js \
+              ./node_modules/.bin/pm2 start server.js \
                 --name amrdiy-backend \
                 --cwd "$VPS_PATH/backend" \
                 --update-env
               DEPLOY_STAGE="pm2-save-process-list"
-              npm exec -- pm2 save
+              ./node_modules/.bin/pm2 save
               DEPLOY_STAGE="complete"
           REMOTE_SCRIPT
 
@@ -307,7 +312,7 @@ jobs:
               fi
 
               cd "$VPS_PATH/backend"
-              pm2_pid="$(npm exec -- pm2 pid amrdiy-backend 2>/dev/null || true)"
+              pm2_pid="$(./node_modules/.bin/pm2 pid amrdiy-backend 2>/dev/null || true)"
               printf '::error title=PM2 backend diagnostics::Process PID: %s\n' "${pm2_pid:-not-running}"
               for log_file in \
                 "$HOME/.pm2/logs/amrdiy-backend-error.log" \
@@ -327,6 +332,6 @@ jobs:
                   printf '::error title=Backend startup log::%s\n' "$safe_error"
                 fi
               done
-              npm exec -- pm2 describe amrdiy-backend || true
-              npm exec -- pm2 logs amrdiy-backend --nostream --lines 80 || true
+              ./node_modules/.bin/pm2 describe amrdiy-backend || true
+              ./node_modules/.bin/pm2 logs amrdiy-backend --nostream --lines 80 || true
           REMOTE_SCRIPT
