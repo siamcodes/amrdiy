@@ -294,6 +294,24 @@ jobs:
               cd "$VPS_PATH/backend"
               pm2_pid="$(npm exec -- pm2 pid amrdiy-backend 2>/dev/null || true)"
               printf '::error title=PM2 backend diagnostics::Process PID: %s\n' "${pm2_pid:-not-running}"
+              for log_file in \
+                "$HOME/.pm2/logs/amrdiy-backend-error.log" \
+                "$HOME/.pm2/logs/amrdiy-backend-out.log"; do
+                [[ -f "$log_file" ]] || continue
+                safe_error="$(
+                  tail -n 100 "$log_file" \
+                    | grep -E 'DB CONNECTION ERR|Missing required environment variable|Error:|TypeError:|SyntaxError:|MODULE_NOT_FOUND|Server is running|DB CONNECTED' \
+                    | tail -n 8 \
+                    | tr '\n' ';' \
+                    || true
+                )"
+                safe_error="${safe_error//'%'/'%25'}"
+                safe_error="${safe_error//$'\r'/'%0D'}"
+                safe_error="${safe_error//$'\n'/'%0A'}"
+                if [[ -n "$safe_error" ]]; then
+                  printf '::error title=Backend startup log::%s\n' "$safe_error"
+                fi
+              done
               npm exec -- pm2 describe amrdiy-backend || true
               npm exec -- pm2 logs amrdiy-backend --nostream --lines 80 || true
           REMOTE_SCRIPT
