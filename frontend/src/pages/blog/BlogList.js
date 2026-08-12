@@ -3,6 +3,7 @@ import { Card, Empty, Input, Pagination, Select, Space, Tag, Typography, message
 import {
   CalendarOutlined,
   EyeOutlined,
+  LockOutlined,
   ReadOutlined,
   SortAscendingOutlined,
   SortDescendingOutlined,
@@ -74,7 +75,7 @@ const BlogList = () => {
         <Card hoverable className="blog-card" cover={<Link to={`/blog/${blog.slug}`}>
           <img className="blog-card-image" src={blog.heroImage?.url || "/amrdiy-logo.svg"} alt={blog.heroImage?.alt || blog.title} />
         </Link>}>
-          <Space wrap>{blog.featured && <Tag color="orange">บทความแนะนำ</Tag>}{blog.tags?.slice(0, 3).map((tag) => <Tag key={tag}>{tag}</Tag>)}</Space>
+          <Space wrap>{blog.featured && <Tag color="orange">บทความแนะนำ</Tag>}{blog.visibility === "members" && <Tag color="blue" icon={<LockOutlined />}>เฉพาะสมาชิก</Tag>}{blog.tags?.slice(0, 3).map((tag) => <Tag key={tag}>{tag}</Tag>)}</Space>
           <Link to={`/blog/${blog.slug}`}><Title level={3} ellipsis={{ rows: 2 }}>{blog.title}</Title></Link>
           <Paragraph type="secondary" ellipsis={{ rows: 3 }}>{blog.excerpt}</Paragraph>
           <Space split="·"><Text type="secondary"><CalendarOutlined /> {new Date(blog.publishedAt).toLocaleDateString("th-TH")}</Text><Text type="secondary"><EyeOutlined /> {blog.views || 0}</Text></Space>

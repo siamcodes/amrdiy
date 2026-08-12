@@ -36,6 +36,7 @@ const normalize = async (body, current = null) => {
     tags: [...new Set((body.tags || []).map((tag) => String(tag).trim().toLowerCase()).filter(Boolean))],
     featuredProducts: productIds,
     status,
+    visibility: body.visibility === "members" ? "members" : "public",
     featured: Boolean(body.featured),
     publishedAt: status === "published" ? (current?.publishedAt || new Date()) : null,
     seoTitle: String(body.seoTitle || "").trim(),
@@ -66,15 +67,26 @@ exports.publicList = async (req, res) => {
     ];
   }
   const [items, total] = await Promise.all([
-    populate(Blog.find(query)).sort(sort).skip((page - 1) * limit).limit(limit).lean(),
+    populate(Blog.find(query).select("-content")).sort(sort).skip((page - 1) * limit).limit(limit).lean(),
     Blog.countDocuments(query),
   ]);
   res.json({ items, total, page, pages: Math.ceil(total / limit) });
 };
 
 exports.publicRead = async (req, res) => {
+  const existing = await Blog.findOne({ slug: req.params.slug, status: "published" })
+    .select("visibility")
+    .lean();
+  if (!existing) return res.status(404).json({ message: "ไม่พบบทความ" });
+  if (existing.visibility === "members" && !req.user) {
+    return res.status(401).json({
+      code: "MEMBERS_ONLY",
+      message: "บทความนี้สำหรับสมาชิกเท่านั้น กรุณาเข้าสู่ระบบ",
+    });
+  }
+
   const blog = await populate(Blog.findOneAndUpdate(
-    { slug: req.params.slug, status: "published" },
+    { _id: existing._id },
     { $inc: { views: 1 } },
     { new: true }
   )).lean();

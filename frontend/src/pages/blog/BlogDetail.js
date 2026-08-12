@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Breadcrumb, Card, Col, Empty, Row, Skeleton, Space, Tag, Typography, message } from "antd";
-import { CalendarOutlined, EyeOutlined, HomeOutlined } from "@ant-design/icons";
-import { Link, useParams } from "react-router-dom";
+import { Breadcrumb, Button, Card, Col, Empty, Result, Row, Skeleton, Space, Tag, Typography, message } from "antd";
+import { CalendarOutlined, EyeOutlined, HomeOutlined, LockOutlined, LoginOutlined } from "@ant-design/icons";
+import { Link, useLocation, useParams } from "react-router-dom";
 import parse from "html-react-parser";
 import { getBlog } from "../../functions/blog";
 import ProductCard from "../../components/cards/ProductCard";
@@ -62,14 +62,32 @@ const renderBlogContent = (html, title) => parse(html || "", {
 
 const BlogDetail = () => {
   const { slug } = useParams();
+  const location = useLocation();
   const [blog, setBlog] = useState(null);
+  const [membersOnly, setMembersOnly] = useState(false);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
+    setLoading(true);
+    setBlog(null);
+    setMembersOnly(false);
     getBlog(slug).then(({ data }) => setBlog(data))
-      .catch(() => message.error("ไม่พบบทความ"))
+      .catch((error) => {
+        if (error.response?.status === 401 && error.response?.data?.code === "MEMBERS_ONLY") {
+          setMembersOnly(true);
+          return;
+        }
+        message.error("ไม่พบบทความ");
+      })
       .finally(() => setLoading(false));
   }, [slug]);
   if (loading) return <Card><Skeleton active /></Card>;
+  if (membersOnly) return <Card><Result
+    icon={<LockOutlined />}
+    status="info"
+    title="บทความนี้สำหรับสมาชิกเท่านั้น"
+    subTitle="กรุณาเข้าสู่ระบบเพื่ออ่านเนื้อหาบทความฉบับเต็ม"
+    extra={<Button type="primary" icon={<LoginOutlined />}><Link to="/login" state={{ from: location.pathname }}>เข้าสู่ระบบ</Link></Button>}
+  /></Card>;
   if (!blog) return <Card><Empty description="ไม่พบบทความ" /></Card>;
 
   return <article className="blog-detail">

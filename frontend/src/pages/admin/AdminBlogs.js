@@ -24,6 +24,7 @@ const emptyBlog = {
   tags: [],
   featuredProducts: [],
   status: "draft",
+  visibility: "public",
   featured: false,
   seoTitle: "",
   seoDescription: "",
@@ -119,6 +120,7 @@ const AdminBlogs = () => {
           { title: "Tag", dataIndex: "tags", render: (tags) => <Space wrap>{tags?.map((tag) => <Tag key={tag}>{tag}</Tag>)}</Space> },
           { title: "สินค้าโปรโมต", dataIndex: "featuredProducts", render: (items) => items?.length || 0 },
           { title: "สถานะ", dataIndex: "status", render: (status) => <Tag color={status === "published" ? "green" : "default"}>{status === "published" ? "เผยแพร่" : "ฉบับร่าง"}</Tag> },
+          { title: "ผู้อ่าน", dataIndex: "visibility", render: (visibility) => <Tag color={visibility === "members" ? "blue" : "cyan"}>{visibility === "members" ? "เฉพาะสมาชิก" : "ทุกคน"}</Tag> },
           { title: "ยอดอ่าน", dataIndex: "views" },
           { title: "", render: (_, item) => <Space><Button icon={<EditOutlined />} onClick={() => openEdit(item)}>แก้ไข</Button><Popconfirm title="ลบบทความนี้?" onConfirm={async () => { await deleteBlog(item._id, user.token); message.success("ลบบทความแล้ว"); load(); }}><Button danger icon={<DeleteOutlined />} /></Popconfirm></Space> },
         ]} />
@@ -152,6 +154,16 @@ const AdminBlogs = () => {
               <Form.Item label="Tag"><Select mode="tags" tokenSeparators={[","]} value={values.tags} onChange={(tags) => setValues({ ...values, tags })} placeholder="พิมพ์แล้วกด Enter" /></Form.Item>
               <Form.Item label="สินค้าที่ต้องการโปรโมต"><Select mode="multiple" showSearch optionFilterProp="label" value={values.featuredProducts} onChange={(featuredProducts) => setValues({ ...values, featuredProducts })} options={products.map((p) => ({ value: p._id, label: `${p.title}${p.sku ? ` · ${p.sku}` : ""}` }))} /></Form.Item>
               <Form.Item label="สถานะ"><Select value={values.status} onChange={(status) => setValues({ ...values, status })} options={[{ value: "draft", label: "ฉบับร่าง" }, { value: "published", label: "เผยแพร่" }]} /></Form.Item>
+              <Form.Item label="สิทธิ์การอ่านเนื้อหา">
+                <Select
+                  value={values.visibility || "public"}
+                  onChange={(visibility) => setValues({ ...values, visibility })}
+                  options={[
+                    { value: "public", label: "ทุกคนอ่านได้" },
+                    { value: "members", label: "เฉพาะสมาชิกที่เข้าสู่ระบบ" },
+                  ]}
+                />
+              </Form.Item>
               <Space><Switch checked={values.featured} onChange={(featured) => setValues({ ...values, featured })} /> บทความแนะนำ</Space>
             </Form>
           </Card>

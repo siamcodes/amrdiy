@@ -20,6 +20,12 @@ const blogSchema = new mongoose.Schema(
       default: "draft",
       index: true,
     },
+    visibility: {
+      type: String,
+      enum: ["public", "members"],
+      default: "public",
+      index: true,
+    },
     featured: { type: Boolean, default: false },
     publishedAt: Date,
     author: { type: ObjectId, ref: "User" },

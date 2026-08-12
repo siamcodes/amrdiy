@@ -1,6 +1,18 @@
 const { getAuthSession } = require("../auth");
 const User = require("../models/user");
 
+exports.optionalAuth = async (req, _res, next) => {
+    try {
+        const session = await getAuthSession(req);
+        req.user = session?.user?.email
+            ? await User.findOne({ email: session.user.email }).exec()
+            : null;
+    } catch (_error) {
+        req.user = null;
+    }
+    next();
+};
+
 exports.authCheck = async (req, res, next) => {
     // console.log(req.headers); //token
     try {
