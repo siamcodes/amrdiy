@@ -112,7 +112,10 @@ a {
 }
 
 .account-menu {
+    justify-self: end;
     justify-content: flex-end;
+    margin-left: auto;
+    width: max-content;
 }
 
 .site-header .primary-menu.ant-menu-horizontal,
