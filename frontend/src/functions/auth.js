@@ -68,6 +68,12 @@ export const getSession = async () => {
     return session?.user ? session : null;
 };
 
+export const getAuthProviders = async () => {
+    const response = await authFetch("/providers");
+    if (!response.ok) return {};
+    return response.json();
+};
+
 export const signOut = async () => {
     const csrfToken = await getCsrfToken();
     await authFetch("/signout", {

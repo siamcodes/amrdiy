@@ -1,8 +1,12 @@
 import { ExpressAuth } from "@auth/express";
 import Credentials from "@auth/express/providers/credentials";
+import Apple from "@auth/express/providers/apple";
 import Facebook from "@auth/express/providers/facebook";
 import GitHub from "@auth/express/providers/github";
 import Google from "@auth/express/providers/google";
+import LINE from "@auth/express/providers/line";
+import TikTok from "@auth/express/providers/tiktok";
+import Twitter from "@auth/express/providers/twitter";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import { MongoClient, ObjectId } from "mongodb";
 import passwordTools from "./password.js";
@@ -68,6 +72,10 @@ export const authConfig = {
     oauthProvider(Google, "AUTH_GOOGLE_ID", "AUTH_GOOGLE_SECRET"),
     oauthProvider(Facebook, "AUTH_FACEBOOK_ID", "AUTH_FACEBOOK_SECRET"),
     oauthProvider(GitHub, "AUTH_GITHUB_ID", "AUTH_GITHUB_SECRET"),
+    oauthProvider(LINE, "AUTH_LINE_ID", "AUTH_LINE_SECRET"),
+    oauthProvider(Apple, "AUTH_APPLE_ID", "AUTH_APPLE_SECRET"),
+    oauthProvider(TikTok, "AUTH_TIKTOK_ID", "AUTH_TIKTOK_SECRET"),
+    oauthProvider(Twitter, "AUTH_TWITTER_ID", "AUTH_TWITTER_SECRET"),
   ].filter(Boolean),
   secret: required("AUTH_SECRET"),
   trustHost: true,

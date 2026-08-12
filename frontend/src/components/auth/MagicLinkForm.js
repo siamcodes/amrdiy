@@ -3,28 +3,33 @@ import {
     Button, Card, Col, Divider, Form, Input, Result, Row, Space, Typography,
 } from "antd";
 import {
-    FacebookFilled, GithubOutlined, GoogleOutlined, LockOutlined,
+    AppleFilled, FacebookFilled, GithubOutlined, GoogleOutlined, LockOutlined,
     MailOutlined, SafetyCertificateOutlined, UserOutlined,
 } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
-    currentUser, registerUser, signInWithCredentials, signInWithProvider,
+    currentUser, getAuthProviders, registerUser, signInWithCredentials, signInWithProvider,
 } from "../../functions/auth";
 
 const { Paragraph, Title } = Typography;
 
-const providers = [
+const providerOptions = [
     { id: "google", label: "Google", icon: <GoogleOutlined /> },
     { id: "facebook", label: "Facebook", icon: <FacebookFilled /> },
     { id: "github", label: "GitHub", icon: <GithubOutlined /> },
+    { id: "line", label: "LINE", icon: <span aria-hidden="true">L</span> },
+    { id: "apple", label: "Apple", icon: <AppleFilled /> },
+    { id: "tiktok", label: "TikTok", icon: <span aria-hidden="true">♪</span> },
+    { id: "twitter", label: "X", icon: <span aria-hidden="true">𝕏</span> },
 ];
 
 const MagicLinkForm = ({ mode = "login" }) => {
     const isRegister = mode === "register";
     const [loading, setLoading] = useState(false);
     const [registeredEmail, setRegisteredEmail] = useState("");
+    const [enabledProviders, setEnabledProviders] = useState([]);
     const user = useSelector((state) => state.user);
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -33,6 +38,14 @@ const MagicLinkForm = ({ mode = "login" }) => {
         if (!user?.token) return;
         navigate(user.role === "admin" ? "/admin/dashboard" : "/user/history", { replace: true });
     }, [navigate, user]);
+
+    useEffect(() => {
+        getAuthProviders()
+            .then((available) => setEnabledProviders(
+                providerOptions.filter((provider) => available[provider.id])
+            ))
+            .catch(() => setEnabledProviders([]));
+    }, []);
 
     const submit = async (values) => {
         setLoading(true);
@@ -161,18 +174,22 @@ const MagicLinkForm = ({ mode = "login" }) => {
                         </Button>
                     </Form>
 
-                    <Divider plain>หรือดำเนินการต่อด้วย</Divider>
-                    <Row gutter={[8, 8]}>
-                        {providers.map((provider) => (
-                            <Col xs={24} sm={8} key={provider.id}>
-                                <Button block size="large" icon={provider.icon}
-                                    onClick={() => signInWithProvider(provider.id).catch(() =>
-                                        toast.error(`ไม่สามารถเชื่อมต่อ ${provider.label} ได้`))}>
-                                    {provider.label}
-                                </Button>
-                            </Col>
-                        ))}
-                    </Row>
+                    {!!enabledProviders.length && (
+                        <>
+                            <Divider plain>หรือดำเนินการต่อด้วย</Divider>
+                            <Row gutter={[8, 8]}>
+                                {enabledProviders.map((provider) => (
+                                    <Col xs={24} sm={12} lg={8} key={provider.id}>
+                                        <Button block size="large" icon={provider.icon}
+                                            onClick={() => signInWithProvider(provider.id).catch(() =>
+                                                toast.error(`ไม่สามารถเชื่อมต่อ ${provider.label} ได้`))}>
+                                            {provider.label}
+                                        </Button>
+                                    </Col>
+                                ))}
+                            </Row>
+                        </>
+                    )}
                     <Paragraph className="auth-note">
                         {isRegister ? "มีบัญชีแล้ว? " : "ยังไม่มีบัญชี? "}
                         <Link to={isRegister ? "/login" : "/register"}>
