@@ -177,9 +177,9 @@ const MagicLinkForm = ({ mode = "login" }) => {
                     {!!enabledProviders.length && (
                         <>
                             <Divider plain>หรือดำเนินการต่อด้วย</Divider>
-                            <Row gutter={[8, 8]}>
+                            <Row gutter={[0, 10]}>
                                 {enabledProviders.map((provider) => (
-                                    <Col xs={24} sm={12} lg={8} key={provider.id}>
+                                    <Col span={24} key={provider.id}>
                                         <Button block size="large" icon={provider.icon}
                                             onClick={() => signInWithProvider(provider.id).catch(() =>
                                                 toast.error(`ไม่สามารถเชื่อมต่อ ${provider.label} ได้`))}>
