@@ -17,7 +17,15 @@ const mongoClient = new MongoClient(required("MONGO_URI"));
 const oauthProvider = (factory, idName, secretName) => {
   const clientId = process.env[idName]?.trim();
   const clientSecret = process.env[secretName]?.trim();
-  return clientId && clientSecret ? factory({ clientId, clientSecret }) : null;
+  return clientId && clientSecret
+    ? factory({
+        clientId,
+        clientSecret,
+        // Allow a verified OAuth identity to attach to an existing credentials
+        // user when the provider returns the same email address.
+        allowDangerousEmailAccountLinking: true,
+      })
+    : null;
 };
 
 const credentialsProvider = Credentials({
