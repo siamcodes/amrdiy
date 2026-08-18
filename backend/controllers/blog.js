@@ -52,8 +52,8 @@ exports.publicList = async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(24, Math.max(1, Number(req.query.limit) || 9));
   const sort = req.query.sort === "oldest"
-    ? { updatedAt: 1, createdAt: 1 }
-    : { updatedAt: -1, createdAt: -1 };
+    ? { createdAt: 1, _id: 1 }
+    : { createdAt: -1, _id: -1 };
   const query = { status: "published" };
   if (req.query.tag) query.tags = String(req.query.tag).toLowerCase();
   const search = String(req.query.search || "").trim().slice(0, 100);
@@ -95,7 +95,7 @@ exports.publicRead = async (req, res) => {
 };
 
 exports.adminList = async (req, res) => {
-  res.json(await populate(Blog.find()).sort("-updatedAt").lean());
+  res.json(await populate(Blog.find()).sort({ createdAt: -1, _id: -1 }).lean());
 };
 
 exports.create = async (req, res) => {
