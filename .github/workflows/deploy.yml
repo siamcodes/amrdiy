@@ -301,7 +301,7 @@ jobs:
           ssh -o BatchMode=yes -o IdentitiesOnly=yes \
             -i "$HOME/.ssh/amrdiy_deploy_key" \
             -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
-            "VPS_PATH='$VPS_PATH' NODE_VERSION='$NODE_VERSION' bash -s" <<'REMOTE_SCRIPT'
+            "VPS_PATH='$VPS_PATH' NODE_VERSION='$NODE_VERSION' BACKEND_PORT='$BACKEND_PORT' bash -s" <<'REMOTE_SCRIPT'
               set -euo pipefail
 
               DEPLOY_STAGE="initialize"
@@ -373,6 +373,31 @@ jobs:
 
               DEPLOY_STAGE="pm2-delete-old-process"
               ./node_modules/.bin/pm2 delete amrdiy-backend >/dev/null 2>&1 || true
+
+              DEPLOY_STAGE="release-backend-port"
+              listener_pid="$(
+                sudo -n ss -ltnp "sport = :$BACKEND_PORT" 2>/dev/null \
+                  | sed -n 's/.*pid=\([0-9][0-9]*\).*/\1/p' \
+                  | head -n 1
+              )"
+              if [[ -n "$listener_pid" ]]; then
+                listener_cwd="$(sudo -n readlink -f "/proc/$listener_pid/cwd" 2>/dev/null || true)"
+                if [[ "$listener_cwd" != "$VPS_PATH/backend" ]]; then
+                  echo "::error title=Backend port conflict::Port $BACKEND_PORT is owned by PID $listener_pid outside $VPS_PATH/backend; refusing to stop it."
+                  exit 1
+                fi
+
+                echo "Stopping stale AMRDIY backend process on port $BACKEND_PORT."
+                sudo -n kill "$listener_pid"
+                for attempt in {1..10}; do
+                  sudo -n kill -0 "$listener_pid" 2>/dev/null || break
+                  sleep 1
+                done
+                if sudo -n kill -0 "$listener_pid" 2>/dev/null; then
+                  sudo -n kill -KILL "$listener_pid"
+                fi
+              fi
+
               for log_file in \
                 "$PM2_HOME/logs/amrdiy-backend-error.log" \
                 "$PM2_HOME/logs/amrdiy-backend-out.log"; do
