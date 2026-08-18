@@ -41,14 +41,14 @@ jobs:
               [[ -s "$NVM_DIR/nvm.sh" ]] && . "$NVM_DIR/nvm.sh"
               cd "$VPS_PATH/backend"
 
-              node --input-type=module <<'NODE'
+              node --input-type=module -e '
                 await import("dotenv/config");
                 const { authConfig } = await import("./auth/config.mjs");
                 const provider = authConfig.providers.find(({ id }) => id === "facebook");
                 console.log(`env_config_present=${/^\d+$/.test(process.env.AUTH_FACEBOOK_CONFIG_ID || "")}`);
                 console.log(`provider_config_present=${/^\d+$/.test(provider?.authorization?.params?.config_id || "")}`);
                 console.log(`provider_scope_empty=${provider?.authorization?.params?.scope === ""}`);
-              NODE
+              '
 
               cookie_file="$(mktemp)"
               trap 'rm -f "$cookie_file"' EXIT
