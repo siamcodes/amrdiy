@@ -246,9 +246,21 @@ jobs:
               fi
 
               "${SUDO[@]}" systemctl reload nginx
-              curl --insecure --silent --show-error --fail \
-                --resolve 'amrdiy.com:443:127.0.0.1' \
-                --output /dev/null https://amrdiy.com/
+              frontend_status="000"
+              for attempt in {1..10}; do
+                frontend_status="$(
+                  curl --insecure --silent --show-error \
+                    --resolve 'amrdiy.com:443:127.0.0.1' \
+                    --output /dev/null --write-out '%{http_code}' \
+                    https://amrdiy.com/ || true
+                )"
+                [[ "$frontend_status" == "200" ]] && break
+                sleep 2
+              done
+              [[ "$frontend_status" == "200" ]] || {
+                echo "::error title=Nginx frontend health check::amrdiy.com returned HTTP $frontend_status after reload."
+                exit 1
+              }
           REMOTE_SCRIPT
 
       - name: Create backend environment file
