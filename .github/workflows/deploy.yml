@@ -364,6 +364,13 @@ jobs:
               DEPLOY_STAGE="npm-ci-production"
               npm ci --omit=dev
 
+              DEPLOY_STAGE="stop-legacy-pm2-process"
+              LEGACY_PM2_HOME="$HOME/.pm2"
+              if [[ "$LEGACY_PM2_HOME" != "$PM2_HOME" && -d "$LEGACY_PM2_HOME" ]]; then
+                PM2_HOME="$LEGACY_PM2_HOME" \
+                  ./node_modules/.bin/pm2 delete amrdiy-backend >/dev/null 2>&1 || true
+              fi
+
               DEPLOY_STAGE="pm2-delete-old-process"
               ./node_modules/.bin/pm2 delete amrdiy-backend >/dev/null 2>&1 || true
               for log_file in \
