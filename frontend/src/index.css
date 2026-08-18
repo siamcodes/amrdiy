@@ -1725,6 +1725,22 @@ a {
     border: 0;
 }
 
+.course-video video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.course-intro-video {
+    margin-bottom: 24px;
+}
+
+.course-lesson-content {
+    margin: 24px 0;
+}
+
 @media (max-width: 991px) {
     .course-enroll-card,
     .course-learning-sidebar {

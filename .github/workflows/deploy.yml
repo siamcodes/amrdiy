@@ -247,6 +247,12 @@ jobs:
                   "$NGINX_SITE"
               fi
 
+              if "${SUDO[@]}" grep -qE 'client_max_body_size[[:space:]]+' "$NGINX_SITE"; then
+                "${SUDO[@]}" sed -i 's/client_max_body_size[[:space:]]\+[^;]*;/client_max_body_size 2048m;/g' "$NGINX_SITE"
+              else
+                "${SUDO[@]}" sed -i '/server[[:space:]]*{/a\    client_max_body_size 2048m;' "$NGINX_SITE"
+              fi
+
               if ! "${SUDO[@]}" nginx -t; then
                 "${SUDO[@]}" cp "$BACKUP" "$NGINX_SITE"
                 "${SUDO[@]}" nginx -t
@@ -379,6 +385,72 @@ jobs:
               DEPLOY_STAGE="npm-ci-production"
               npm ci --omit=dev
 
+              DEPLOY_STAGE="configure-minio"
+              minio_credentials="$VPS_PATH/.minio.env"
+              if ! grep -q '^MINIO_ENDPOINT=' .env; then printf 'MINIO_ENDPOINT=127.0.0.1\n' >> .env; fi
+              if ! grep -q '^MINIO_PORT=' .env; then printf 'MINIO_PORT=9000\n' >> .env; fi
+              if ! grep -q '^MINIO_USE_SSL=' .env; then printf 'MINIO_USE_SSL=false\n' >> .env; fi
+              if ! grep -q '^MINIO_BUCKET=' .env; then printf 'MINIO_BUCKET=amrdiy-course-media\n' >> .env; fi
+              if ! grep -q '^MINIO_ACCESS_KEY=' .env || ! grep -q '^MINIO_SECRET_KEY=' .env; then
+                if [[ ! -f "$minio_credentials" ]]; then
+                  umask 077
+                  {
+                    printf 'MINIO_ACCESS_KEY=amrdiy%s\n' "$(openssl rand -hex 8)"
+                    printf 'MINIO_SECRET_KEY=%s\n' "$(openssl rand -hex 32)"
+                  } > "$minio_credentials"
+                  chmod 600 "$minio_credentials"
+                fi
+                grep -E '^MINIO_(ACCESS_KEY|SECRET_KEY)=' "$minio_credentials" >> .env
+              fi
+
+              DEPLOY_STAGE="install-minio"
+              install -d -m 700 "$VPS_PATH/bin" "$VPS_PATH/minio-data"
+              if [[ ! -x "$VPS_PATH/bin/minio" ]]; then
+                case "$(uname -m)" in
+                  x86_64) minio_arch="amd64" ;;
+                  aarch64|arm64) minio_arch="arm64" ;;
+                  *) echo "::error title=MinIO installation::Unsupported architecture $(uname -m)"; exit 1 ;;
+                esac
+                curl --fail --location --silent --show-error \
+                  "https://dl.min.io/server/minio/release/linux-${minio_arch}/minio" \
+                  --output "$VPS_PATH/bin/minio.tmp"
+                chmod 700 "$VPS_PATH/bin/minio.tmp"
+                mv "$VPS_PATH/bin/minio.tmp" "$VPS_PATH/bin/minio"
+              fi
+
+              DEPLOY_STAGE="start-minio"
+              minio_endpoint="$(sed -n 's/^MINIO_ENDPOINT=//p' .env | tail -n 1)"
+              minio_port="$(sed -n 's/^MINIO_PORT=//p' .env | tail -n 1)"
+              minio_access_key="$(sed -n 's/^MINIO_ACCESS_KEY=//p' .env | tail -n 1)"
+              minio_secret_key="$(sed -n 's/^MINIO_SECRET_KEY=//p' .env | tail -n 1)"
+              [[ "$minio_endpoint" == "127.0.0.1" || "$minio_endpoint" == "localhost" ]] || {
+                echo "::error title=MinIO security::Production MINIO_ENDPOINT must be 127.0.0.1 or localhost."
+                exit 1
+              }
+              [[ "$minio_port" =~ ^[0-9]+$ ]] && (( minio_port >= 1 && minio_port <= 65535 )) || {
+                echo "::error title=MinIO configuration::MINIO_PORT must be between 1 and 65535."
+                exit 1
+              }
+              [[ ${#minio_access_key} -ge 3 && ${#minio_secret_key} -ge 16 ]] || {
+                echo "::error title=MinIO credentials::Use an access key of at least 3 characters and a secret key of at least 16 characters."
+                exit 1
+              }
+              ./node_modules/.bin/pm2 delete amrdiy-minio >/dev/null 2>&1 || true
+              MINIO_ROOT_USER="$minio_access_key" MINIO_ROOT_PASSWORD="$minio_secret_key" \
+                ./node_modules/.bin/pm2 start "$VPS_PATH/bin/minio" \
+                  --name amrdiy-minio --interpreter none -- \
+                  server "$VPS_PATH/minio-data" \
+                  --address "127.0.0.1:$minio_port" \
+                  --console-address "127.0.0.1:$((minio_port + 1))"
+              for attempt in {1..15}; do
+                curl --fail --silent "http://127.0.0.1:$minio_port/minio/health/live" >/dev/null && break
+                sleep 2
+              done
+              curl --fail --silent "http://127.0.0.1:$minio_port/minio/health/live" >/dev/null || {
+                echo "::error title=MinIO health check::MinIO did not become healthy on port $minio_port."
+                exit 1
+              }
+
               DEPLOY_STAGE="stop-legacy-pm2-process"
               LEGACY_PM2_HOME="$HOME/.pm2"
               if [[ "$LEGACY_PM2_HOME" != "$PM2_HOME" && -d "$LEGACY_PM2_HOME" ]]; then
@@ -444,6 +516,8 @@ jobs:
              curl --retry 6 --retry-delay 5 --retry-connrefused \
                --fail --silent --show-error \
                'http://127.0.0.1:${BACKEND_PORT}/api/health' || { echo '::error title=Backend health check::Backend did not respond on port ${BACKEND_PORT}'; exit 1; }; \
+              minio_port="\$(sed -n 's/^MINIO_PORT=//p' '$VPS_PATH/backend/.env' | tail -n 1)"; \
+              curl --fail --silent "http://127.0.0.1:\$minio_port/minio/health/live" >/dev/null || { echo '::error title=MinIO health check::MinIO is unavailable'; exit 1; }; \
              curl --fail --silent --show-error --output /dev/null \
                'http://127.0.0.1/' || { echo '::error title=Frontend health check::Nginx cannot serve the frontend index'; exit 1; }; \
              curl --retry 4 --retry-delay 3 \

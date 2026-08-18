@@ -1,10 +1,18 @@
 const mongoose = require("mongoose");
 const { ObjectId } = mongoose.Schema;
 
+const videoSchema = new mongoose.Schema({
+  objectName: String,
+  fileName: String,
+  contentType: String,
+  size: Number,
+}, { _id: false });
+
 const lessonSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true },
   description: { type: String, trim: true },
-  videoUrl: { type: String, trim: true },
+  video: { type: videoSchema, default: () => ({}) },
+  content: { type: String, default: "" },
   durationMinutes: { type: Number, default: 0, min: 0 },
   preview: { type: Boolean, default: false },
   order: { type: Number, default: 0 },
@@ -22,7 +30,8 @@ const courseSchema = new mongoose.Schema({
   slug: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
   subtitle: { type: String, trim: true, maxlength: 300 },
   description: { type: String, required: true },
-  thumbnail: { url: String, alt: String },
+  thumbnail: { url: String, public_id: String, alt: String, width: Number, height: Number },
+  introVideo: { type: videoSchema, default: () => ({}) },
   price: { type: Number, required: true, default: 0, min: 0 },
   status: { type: String, enum: ["draft", "published"], default: "draft", index: true },
   level: { type: String, enum: ["beginner", "intermediate", "advanced", "all"], default: "all" },

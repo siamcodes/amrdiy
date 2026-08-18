@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { CheckCircleOutlined, PlayCircleOutlined } from "@ant-design/icons";
 import { Button, Card, Col, Collapse, Empty, Progress, Row, Space, Typography, message } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
-import { completeCourseLesson, getCourse } from "../../functions/course";
+import { completeCourseLesson, courseMediaUrl, getCourse } from "../../functions/course";
+import parse from "html-react-parser";
 
 const { Paragraph, Title, Text } = Typography;
 
@@ -37,8 +38,9 @@ const CourseLearn = () => {
             icon={completed.includes(String(lesson._id)) ? <CheckCircleOutlined /> : <PlayCircleOutlined />}>{lesson.title}</Button>)}
         </Space> }))} /></Card></Col>
       <Col xs={24} lg={17}><Card className="course-player-card">
-        {selected?.videoUrl ? <div className="course-video"><iframe src={selected.videoUrl} title={selected.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen /></div> : <Empty description="บทเรียนนี้ยังไม่มีวิดีโอ" />}
+        {selected?.video?.playbackUrl ? <div className="course-video"><video controls crossOrigin="use-credentials" preload="metadata" src={courseMediaUrl(selected.video.playbackUrl)} /></div> : <Empty description="บทเรียนนี้ยังไม่มีวิดีโอ" />}
         <Title level={3}>{selected?.title}</Title><Paragraph>{selected?.description}</Paragraph>
+        {selected?.content && <div className="blog-content course-lesson-content">{parse(selected.content)}</div>}
         <Button type="primary" icon={<CheckCircleOutlined />} disabled={completed.includes(String(selected?._id))} onClick={markComplete}>เรียนบทนี้จบแล้ว</Button>
       </Card></Col>
     </Row>

@@ -2,6 +2,8 @@ const Stripe = require("stripe");
 const Course = require("../models/course");
 const Enrollment = require("../models/enrollment");
 const { required } = require("../config/env");
+const { destroyAsset, removeAllEditorImages, removeDeletedEditorImages } = require("../services/cloudinary");
+const { removeCourseVideo } = require("../services/minio");
 
 const slugify = (value) => String(value || "").trim().toLowerCase()
   .replace(/\s+/g, "-")
@@ -14,7 +16,14 @@ const normalize = (body) => ({
   slug: slugify(body.slug || body.title),
   subtitle: String(body.subtitle || "").trim(),
   description: String(body.description || "").trim(),
-  thumbnail: { url: String(body.thumbnail?.url || "").trim(), alt: String(body.thumbnail?.alt || body.title || "").trim() },
+  thumbnail: {
+    url: String(body.thumbnail?.url || "").trim(),
+    public_id: String(body.thumbnail?.public_id || "").trim(),
+    alt: String(body.thumbnail?.alt || body.title || "").trim(),
+    width: Number(body.thumbnail?.width) || undefined,
+    height: Number(body.thumbnail?.height) || undefined,
+  },
+  introVideo: body.introVideo || {},
   price: Math.max(0, Number(body.price) || 0),
   status: body.status === "published" ? "published" : "draft",
   level: ["beginner", "intermediate", "advanced", "all"].includes(body.level) ? body.level : "all",
@@ -30,7 +39,8 @@ const normalize = (body) => ({
       ...(lesson._id ? { _id: lesson._id } : {}),
       title: String(lesson.title || "").trim(),
       description: String(lesson.description || "").trim(),
-      videoUrl: String(lesson.videoUrl || "").trim(),
+      video: lesson.video || {},
+      content: String(lesson.content || ""),
       durationMinutes: Math.max(0, Number(lesson.durationMinutes) || 0),
       preview: Boolean(lesson.preview),
       order: lessonIndex,
@@ -62,11 +72,14 @@ exports.read = async (req, res) => {
     ? await Enrollment.findOne({ course: course._id, student: req.user._id, status: { $in: ["active", "completed"] } }).lean()
     : null;
   const canLearn = Boolean(enrollment || req.user?.role === "admin");
+  course.introVideo = course.introVideo?.objectName
+    ? { ...course.introVideo, playbackUrl: `/api/course-media/${course._id}/intro` }
+    : {};
   course.sections = course.sections.map((section) => ({
     ...section,
     lessons: section.lessons.map((lesson) => canLearn || lesson.preview
-      ? lesson
-      : { ...lesson, videoUrl: undefined }),
+      ? { ...lesson, video: lesson.video?.objectName ? { ...lesson.video, playbackUrl: `/api/course-media/${course._id}/lessons/${lesson._id}` } : {} }
+      : { ...lesson, video: {}, content: "" }),
   }));
   res.json({ course, enrolled: Boolean(enrollment), enrollment });
 };
@@ -151,8 +164,19 @@ exports.create = async (req, res) => {
 };
 exports.update = async (req, res) => {
   try {
-    const course = await Course.findByIdAndUpdate(req.params.id, normalize(req.body), { new: true, runValidators: true });
+    const current = await Course.findById(req.params.id).lean();
+    if (!current) return res.status(404).json({ message: "ไม่พบคอร์ส" });
+    const payload = normalize(req.body);
+    const course = await Course.findByIdAndUpdate(req.params.id, payload, { new: true, runValidators: true });
     if (!course) return res.status(404).json({ message: "ไม่พบคอร์ส" });
+    const previousMedia = [current.introVideo?.objectName, ...current.sections.flatMap((section) => section.lessons.map((lesson) => lesson.video?.objectName))].filter(Boolean);
+    const nextMedia = new Set([payload.introVideo?.objectName, ...payload.sections.flatMap((section) => section.lessons.map((lesson) => lesson.video?.objectName))].filter(Boolean));
+    await Promise.allSettled(previousMedia.filter((objectName) => !nextMedia.has(objectName)).map(removeCourseVideo));
+    if (current.thumbnail?.public_id && current.thumbnail.public_id !== payload.thumbnail.public_id
+      && current.thumbnail.public_id.startsWith("amrdiy/course-cover/")) await destroyAsset(current.thumbnail.public_id);
+    const previousContent = current.sections.flatMap((section) => section.lessons.map((lesson) => lesson.content || "")).join("\n");
+    const nextContent = payload.sections.flatMap((section) => section.lessons.map((lesson) => lesson.content || "")).join("\n");
+    await removeDeletedEditorImages(previousContent, nextContent);
     res.json(course);
   } catch (error) { res.status(400).json({ message: error.code === 11000 ? "Slug นี้ถูกใช้งานแล้ว" : error.message }); }
 };
@@ -161,5 +185,9 @@ exports.remove = async (req, res) => {
   if (enrollmentCount) return res.status(409).json({ message: "ไม่สามารถลบคอร์สที่มีผู้เรียนแล้ว ให้เปลี่ยนเป็นฉบับร่างแทน" });
   const course = await Course.findByIdAndDelete(req.params.id);
   if (!course) return res.status(404).json({ message: "ไม่พบคอร์ส" });
+  const media = [course.introVideo?.objectName, ...course.sections.flatMap((section) => section.lessons.map((lesson) => lesson.video?.objectName))].filter(Boolean);
+  await Promise.allSettled(media.map(removeCourseVideo));
+  if (course.thumbnail?.public_id?.startsWith("amrdiy/course-cover/")) await destroyAsset(course.thumbnail.public_id);
+  await removeAllEditorImages(...course.sections.flatMap((section) => section.lessons.map((lesson) => lesson.content || "")));
   res.json({ ok: true });
 };

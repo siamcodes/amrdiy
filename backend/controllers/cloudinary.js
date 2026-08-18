@@ -11,10 +11,10 @@ exports.upload = async (req, res) => {
 };
 
 exports.uploadUserAsset = async (req, res) => {
-    const purpose = ["profile", "payment-slip", "blog-hero", "editor-image"].includes(req.body.purpose)
+    const purpose = ["profile", "payment-slip", "blog-hero", "course-cover", "editor-image"].includes(req.body.purpose)
         ? req.body.purpose
         : "profile";
-    if (purpose === "blog-hero" && req.user.role !== "admin") {
+    if (["blog-hero", "course-cover"].includes(purpose) && req.user.role !== "admin") {
         return res.status(403).json({ err: "Admin resource. Access denied." });
     }
     try {

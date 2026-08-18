@@ -11,6 +11,7 @@ const transformations = {
   product: [{ width: 1600, height: 1600, crop: "limit", quality: "auto:good", fetch_format: "auto" }],
   profile: [{ width: 512, height: 512, crop: "fill", gravity: "auto", quality: "auto:good", fetch_format: "auto" }],
   "blog-hero": [{ width: 1600, height: 900, crop: "fill", gravity: "auto", quality: "auto:good", fetch_format: "auto" }],
+  "course-cover": [{ width: 1600, height: 900, crop: "fill", gravity: "auto", quality: "auto:good", fetch_format: "auto" }],
   "editor-image": [{ width: 1400, height: 1400, crop: "limit", quality: "auto:good", fetch_format: "auto" }],
   "payment-slip": [{ width: 1800, height: 1800, crop: "limit", quality: "auto:good", fetch_format: "auto" }],
 };
@@ -47,8 +48,9 @@ const extractEditorImagePublicIds = (html) => {
 const isEditorImageReferenced = async (publicId) => {
   const Blog = require("../models/blog");
   const Product = require("../models/product");
+  const Course = require("../models/course");
   const marker = `/${publicId}`;
-  const [blogReference, productReference] = await Promise.all([
+  const [blogReference, productReference, courseReference] = await Promise.all([
     Blog.exists({ content: { $regex: marker } }),
     Product.exists({
       $or: [
@@ -57,8 +59,9 @@ const isEditorImageReferenced = async (publicId) => {
         { detail: { $regex: marker } },
       ],
     }),
+    Course.exists({ "sections.lessons.content": { $regex: marker } }),
   ]);
-  return Boolean(blogReference || productReference);
+  return Boolean(blogReference || productReference || courseReference);
 };
 
 const destroyUnreferencedEditorImage = async (publicId) => {

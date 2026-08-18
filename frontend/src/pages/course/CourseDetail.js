@@ -5,7 +5,7 @@ import { BookOutlined, CheckCircleOutlined, ClockCircleOutlined, LockOutlined, P
 import { Button, Card, Collapse, Col, Empty, Row, Space, Tag, Typography, message } from "antd";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { confirmCoursePayment, createCoursePaymentIntent, enrollFreeCourse, getCourse } from "../../functions/course";
+import { confirmCoursePayment, courseMediaUrl, createCoursePaymentIntent, enrollFreeCourse, getCourse } from "../../functions/course";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_KEY);
 const { Paragraph, Title, Text } = Typography;
@@ -55,6 +55,7 @@ const CourseDetail = () => {
   return <div className="course-detail-page">
     <Row gutter={[28, 28]}>
       <Col xs={24} lg={16}>
+        {course.introVideo?.playbackUrl && <div className="course-video course-intro-video"><video controls crossOrigin="use-credentials" preload="metadata" src={courseMediaUrl(course.introVideo.playbackUrl)} /></div>}
         <Tag color="blue">{course.category || "COURSE"}</Tag>
         <Title>{course.title}</Title><Paragraph className="course-subtitle">{course.subtitle}</Paragraph>
         <Space wrap split="·"><Text><BookOutlined /> {lessonCount} บทเรียน</Text><Text><ClockCircleOutlined /> {duration} นาที</Text><Text><TeamOutlined /> {course.enrollmentCount || 0} ผู้เรียน</Text></Space>
@@ -62,7 +63,7 @@ const CourseDetail = () => {
         {!!course.learningOutcomes.length && <section><Title level={3}>สิ่งที่จะได้เรียนรู้</Title><Row gutter={[12, 12]}>{course.learningOutcomes.map((item) => <Col xs={24} md={12} key={item}><CheckCircleOutlined className="course-check" /> {item}</Col>)}</Row></section>}
         <section><Title level={3}>เนื้อหาหลักสูตร</Title><Collapse items={course.sections.map((section) => ({
           key: section._id, label: `${section.title} · ${section.lessons.length} บทเรียน`, children: <Space direction="vertical" className="full-width">
-            {section.lessons.map((lesson) => <div className="course-lesson-row" key={lesson._id}><span>{lesson.videoUrl ? <PlayCircleOutlined /> : <LockOutlined />} {lesson.title}</span><Text type="secondary">{lesson.durationMinutes} นาที</Text></div>)}
+            {section.lessons.map((lesson) => <div className="course-lesson-row" key={lesson._id}><span>{lesson.video?.playbackUrl ? <PlayCircleOutlined /> : <LockOutlined />} {lesson.title}</span><Text type="secondary">{lesson.durationMinutes} นาที</Text></div>)}
           </Space>,
         }))} /></section>
       </Col>
