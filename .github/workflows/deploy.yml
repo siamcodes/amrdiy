@@ -54,6 +54,7 @@ jobs:
           VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
           BACKEND_ENV: ${{ secrets.BACKEND_ENV }}
           FRONTEND_ENV: ${{ secrets.FRONTEND_ENV }}
+          AUTH_FACEBOOK_CONFIG_ID: ${{ vars.AUTH_FACEBOOK_CONFIG_ID }}
         run: |
           set -euo pipefail
 
@@ -88,6 +89,11 @@ jobs:
               exit 1
             }
           done
+
+          [[ "$AUTH_FACEBOOK_CONFIG_ID" =~ ^[0-9]+$ ]] || {
+            echo "::error::AUTH_FACEBOOK_CONFIG_ID production variable must contain only digits"
+            exit 1
+          }
 
           configured_port="$(
             printf '%s\n' "$BACKEND_ENV" \
@@ -271,9 +277,13 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_PATH: ${{ secrets.VPS_PATH }}
           BACKEND_ENV: ${{ secrets.BACKEND_ENV }}
+          AUTH_FACEBOOK_CONFIG_ID: ${{ vars.AUTH_FACEBOOK_CONFIG_ID }}
         run: |
           set -euo pipefail
-          printf '%s\n' "$BACKEND_ENV" | ssh \
+          {
+            printf '%s\n' "$BACKEND_ENV"
+            printf 'AUTH_FACEBOOK_CONFIG_ID=%s\n' "$AUTH_FACEBOOK_CONFIG_ID"
+          } | ssh \
             -o BatchMode=yes -o IdentitiesOnly=yes \
             -i "$HOME/.ssh/amrdiy_deploy_key" \
             -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
