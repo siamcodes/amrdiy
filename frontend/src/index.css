@@ -1424,6 +1424,10 @@ a {
         box-shadow .2s ease, transform .2s ease;
 }
 
+.oauth-buttons {
+    margin-block: 4px 8px;
+}
+
 .oauth-button.ant-btn:hover {
     transform: translateY(-1px);
 }
@@ -1434,16 +1438,16 @@ a {
 }
 
 .oauth-google.ant-btn {
-    color: #3c4043;
-    background: #fff;
-    border-color: #dadce0;
+    color: #fff;
+    background: #db4437;
+    border-color: #db4437;
 }
 
 .oauth-google.ant-btn:hover {
-    color: #202124 !important;
-    background: #f8fafd !important;
-    border-color: #c6c9ce !important;
-    box-shadow: 0 2px 6px rgba(60, 64, 67, .18);
+    color: #fff !important;
+    background: #c5392f !important;
+    border-color: #c5392f !important;
+    box-shadow: 0 2px 6px rgba(219, 68, 55, .28);
 }
 
 .oauth-facebook.ant-btn {

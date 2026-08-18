@@ -177,7 +177,7 @@ const MagicLinkForm = ({ mode = "login" }) => {
                     {!!enabledProviders.length && (
                         <>
                             <Divider plain>หรือดำเนินการต่อด้วย</Divider>
-                            <Row gutter={[0, 10]}>
+                            <Row gutter={[0, 14]} className="oauth-buttons">
                                 {enabledProviders.map((provider) => (
                                     <Col span={24} key={provider.id}>
                                         <Button block size="large" icon={provider.icon}
