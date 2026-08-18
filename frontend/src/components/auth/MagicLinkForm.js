@@ -181,6 +181,7 @@ const MagicLinkForm = ({ mode = "login" }) => {
                                 {enabledProviders.map((provider) => (
                                     <Col span={24} key={provider.id}>
                                         <Button block size="large" icon={provider.icon}
+                                            className={`oauth-button oauth-${provider.id}`}
                                             onClick={() => signInWithProvider(provider.id).catch(() =>
                                                 toast.error(`ไม่สามารถเชื่อมต่อ ${provider.label} ได้`))}>
                                             {provider.label}

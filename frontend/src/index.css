@@ -1415,6 +1415,101 @@ a {
   width: min(100%, 680px);
 }
 
+.oauth-button.ant-btn {
+    height: 44px;
+    font-weight: 600;
+    border-width: 1px;
+    box-shadow: none;
+    transition: color .2s ease, background-color .2s ease, border-color .2s ease,
+        box-shadow .2s ease, transform .2s ease;
+}
+
+.oauth-button.ant-btn:hover {
+    transform: translateY(-1px);
+}
+
+.oauth-button.ant-btn:focus-visible {
+    outline: 3px solid rgba(22, 119, 255, .28);
+    outline-offset: 2px;
+}
+
+.oauth-google.ant-btn {
+    color: #3c4043;
+    background: #fff;
+    border-color: #dadce0;
+}
+
+.oauth-google.ant-btn:hover {
+    color: #202124 !important;
+    background: #f8fafd !important;
+    border-color: #c6c9ce !important;
+    box-shadow: 0 2px 6px rgba(60, 64, 67, .18);
+}
+
+.oauth-facebook.ant-btn {
+    color: #fff;
+    background: #1877f2;
+    border-color: #1877f2;
+}
+
+.oauth-facebook.ant-btn:hover {
+    color: #fff !important;
+    background: #166fe5 !important;
+    border-color: #166fe5 !important;
+}
+
+.oauth-line.ant-btn {
+    color: #fff;
+    background: #06c755;
+    border-color: #06c755;
+}
+
+.oauth-line.ant-btn:hover {
+    color: #fff !important;
+    background: #05b94e !important;
+    border-color: #05b94e !important;
+}
+
+.oauth-github.ant-btn {
+    color: #fff;
+    background: #24292f;
+    border-color: #24292f;
+}
+
+.oauth-github.ant-btn:hover {
+    color: #fff !important;
+    background: #1b1f23 !important;
+    border-color: #1b1f23 !important;
+}
+
+.oauth-apple.ant-btn,
+.oauth-twitter.ant-btn {
+    color: #fff;
+    background: #000;
+    border-color: #000;
+}
+
+.oauth-apple.ant-btn:hover,
+.oauth-twitter.ant-btn:hover {
+    color: #fff !important;
+    background: #242424 !important;
+    border-color: #242424 !important;
+}
+
+.oauth-tiktok.ant-btn {
+    color: #fff;
+    background: #010101;
+    border-color: #25f4ee;
+    box-shadow: 2px 2px 0 #fe2c55;
+}
+
+.oauth-tiktok.ant-btn:hover {
+    color: #fff !important;
+    background: #171717 !important;
+    border-color: #25f4ee !important;
+    box-shadow: 2px 2px 0 #fe2c55;
+}
+
 .auth-icon {
     margin-bottom: 18px;
     color: #1677ff;
