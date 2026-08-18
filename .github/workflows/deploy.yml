@@ -197,6 +197,60 @@ jobs:
              find '$VPS_PATH/frontend' -type d -exec chmod 755 {} + && \
              find '$VPS_PATH/frontend' -type f -exec chmod 644 {} +"
 
+      - name: Serve frontend build through Nginx
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PATH: ${{ secrets.VPS_PATH }}
+        run: |
+          set -euo pipefail
+          ssh -o BatchMode=yes -o IdentitiesOnly=yes \
+            -i "$HOME/.ssh/amrdiy_deploy_key" \
+            -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
+            "VPS_PATH='$VPS_PATH' bash -s" <<'REMOTE_SCRIPT'
+              set -euo pipefail
+              export PATH="/usr/sbin:/usr/local/sbin:/usr/local/bin:/usr/bin:/bin:$PATH"
+
+              if [[ "$(id -u)" == "0" ]]; then
+                SUDO=()
+              elif sudo -n true 2>/dev/null; then
+                SUDO=(sudo -n)
+              else
+                echo "::error title=Nginx configuration::The deploy user needs passwordless sudo to update Nginx."
+                exit 1
+              fi
+
+              NGINX_SITE="/etc/nginx/sites-enabled/amrdiy.com"
+              [[ -f "$NGINX_SITE" ]] || {
+                echo "::error title=Nginx configuration::Missing $NGINX_SITE"
+                exit 1
+              }
+
+              "${SUDO[@]}" install -d -m 700 /var/backups/amrdiy-nginx
+              BACKUP="/var/backups/amrdiy-nginx/amrdiy.com.before-static"
+              "${SUDO[@]}" cp "$NGINX_SITE" "$BACKUP"
+
+              if "${SUDO[@]}" grep -qE 'proxy_pass[[:space:]]+http://127\.0\.0\.1:3000;' "$NGINX_SITE"; then
+                "${SUDO[@]}" sed -i \
+                  "/proxy_pass[[:space:]]\+http:\/\/127\\.0\\.0\\.1:3000;/c\\        root $VPS_PATH/frontend;\\n        index index.html;\\n        try_files \$uri \$uri/ /index.html;" \
+                  "$NGINX_SITE"
+              fi
+
+              if ! "${SUDO[@]}" nginx -t; then
+                "${SUDO[@]}" cp "$BACKUP" "$NGINX_SITE"
+                "${SUDO[@]}" nginx -t
+                echo "::error title=Nginx configuration::Invalid static frontend configuration; restored the previous file."
+                exit 1
+              fi
+
+              "${SUDO[@]}" systemctl reload nginx
+              curl --insecure --silent --show-error --fail \
+                --resolve 'amrdiy.com:443:127.0.0.1' \
+                --output /dev/null https://amrdiy.com/
+          REMOTE_SCRIPT
+
       - name: Create backend environment file
         shell: bash
         env:
@@ -317,6 +371,9 @@ jobs:
                'http://127.0.0.1:${BACKEND_PORT}/api/health' || { echo '::error title=Backend health check::Backend did not respond on port ${BACKEND_PORT}'; exit 1; }; \
              curl --fail --silent --show-error --output /dev/null \
                'http://127.0.0.1/' || { echo '::error title=Frontend health check::Nginx cannot serve the frontend index'; exit 1; }; \
+             curl --retry 4 --retry-delay 3 \
+               --fail --silent --show-error --output /dev/null \
+               'https://amrdiy.com/' || { echo '::error title=Public frontend health check::amrdiy.com is not serving the deployed frontend'; exit 1; }; \
              curl --fail --silent --show-error \
                'http://127.0.0.1/api/health' || echo '::warning title=Reverse proxy health check::Nginx does not expose /api/health on port 80; verify that FRONTEND_ENV VITE_API points to the backend URL'"
 
