@@ -54,12 +54,15 @@ jobs:
           VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
           BACKEND_ENV: ${{ secrets.BACKEND_ENV }}
           FRONTEND_ENV: ${{ secrets.FRONTEND_ENV }}
+          AUTH_LINE_ID: ${{ secrets.AUTH_LINE_ID }}
+          AUTH_LINE_SECRET: ${{ secrets.AUTH_LINE_SECRET }}
           AUTH_FACEBOOK_CONFIG_ID: ${{ vars.AUTH_FACEBOOK_CONFIG_ID }}
         run: |
           set -euo pipefail
 
           for name in VPS_HOST VPS_PORT VPS_USER VPS_PATH VPS_SSH_KEY \
-            VPS_KNOWN_HOSTS BACKEND_ENV FRONTEND_ENV; do
+            VPS_KNOWN_HOSTS BACKEND_ENV FRONTEND_ENV AUTH_LINE_ID \
+            AUTH_LINE_SECRET; do
             if [[ -z "${!name:-}" ]]; then
               echo "::error::Missing production secret: $name"
               exit 1
@@ -277,12 +280,16 @@ jobs:
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_PATH: ${{ secrets.VPS_PATH }}
           BACKEND_ENV: ${{ secrets.BACKEND_ENV }}
+          AUTH_LINE_ID: ${{ secrets.AUTH_LINE_ID }}
+          AUTH_LINE_SECRET: ${{ secrets.AUTH_LINE_SECRET }}
           AUTH_FACEBOOK_CONFIG_ID: ${{ vars.AUTH_FACEBOOK_CONFIG_ID }}
         run: |
           set -euo pipefail
           {
             printf '%s\n' "$BACKEND_ENV"
             printf 'AUTH_FACEBOOK_CONFIG_ID=%s\n' "$AUTH_FACEBOOK_CONFIG_ID"
+            printf 'AUTH_LINE_ID=%s\n' "$AUTH_LINE_ID"
+            printf 'AUTH_LINE_SECRET=%s\n' "$AUTH_LINE_SECRET"
           } | ssh \
             -o BatchMode=yes -o IdentitiesOnly=yes \
             -i "$HOME/.ssh/amrdiy_deploy_key" \
@@ -344,6 +351,14 @@ jobs:
               DEPLOY_STAGE="validate-facebook-configuration"
               grep -qE '^AUTH_FACEBOOK_CONFIG_ID=[0-9]+$' .env || {
                 echo "::error title=Facebook configuration::AUTH_FACEBOOK_CONFIG_ID is missing or invalid in the deployed backend environment."
+                exit 1
+              }
+              grep -qE '^AUTH_LINE_ID=[0-9]+$' .env || {
+                echo "::error title=LINE configuration::AUTH_LINE_ID is missing or invalid in the deployed backend environment."
+                exit 1
+              }
+              grep -qE '^AUTH_LINE_SECRET=[A-Za-z0-9]+$' .env || {
+                echo "::error title=LINE configuration::AUTH_LINE_SECRET is missing or invalid in the deployed backend environment."
                 exit 1
               }
 
