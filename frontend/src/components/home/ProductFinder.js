@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Button, Card, Cascader, Col, Input, Row, Select, Slider, Space, Typography } from "antd";
+import { Button, Card, Cascader, Input, Select, Slider, Space, Typography } from "antd";
 import { ClearOutlined, SearchOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { getBrands } from "../../functions/brand";
@@ -65,34 +65,29 @@ const ProductFinder = () => {
     return (
         <Card className="home-product-finder" title="ค้นหาและกรองสินค้า"
             extra={<Button type="text" icon={<ClearOutlined />} onClick={reset}>ล้าง</Button>}>
-            <Row gutter={[16, 16]} align="bottom">
-                <Col xs={24} md={12} xl={7}>
+            <Space direction="vertical" size="large" className="full-width">
+                <div>
                     <Typography.Text strong>ค้นหาสินค้า</Typography.Text>
                     <Input allowClear size="large" prefix={<SearchOutlined />} value={keyword}
                         onChange={(event) => setKeyword(event.target.value)} onPressEnter={search}
                         placeholder="ชื่อสินค้า รุ่น หรือคำสำคัญ" />
-                </Col>
-                <Col xs={24} md={12} xl={7}>
+                </div>
+                <div>
                     <Typography.Text strong>ประเภทสินค้า</Typography.Text>
                     <Cascader className="full-width" size="large" allowClear changeOnSelect
                         showSearch value={categoryPath} options={categoryOptions}
                         onChange={(value) => setCategoryPath(value || [])}
                         placeholder="เลือกหรือค้นหาหมวดสินค้า"
                         displayRender={(labels) => labels.join(" / ")} />
-                </Col>
-                <Col xs={24} md={12} xl={5}>
+                </div>
+                <div>
                     <Typography.Text strong>ผู้ผลิต / Brand</Typography.Text>
                     <Select allowClear showSearch className="full-width" size="large"
                         optionFilterProp="label" value={brandRef || undefined} onChange={setBrandRef}
                         placeholder="เลือก Brand"
                         options={brands.map((item) => ({ value: item._id, label: item.name }))} />
-                </Col>
-                <Col xs={24} md={12} xl={5}>
-                    <Button type="primary" size="large" block icon={<SearchOutlined />} onClick={search}>
-                        ค้นหาสินค้า
-                    </Button>
-                </Col>
-                <Col span={24}>
+                </div>
+                <div>
                     <Space direction="vertical" size={0} className="full-width">
                         <Typography.Text strong>ช่วงราคา</Typography.Text>
                         <Slider range min={0} max={50000} step={100} value={price} onChange={setPrice} />
@@ -100,8 +95,11 @@ const ProductFinder = () => {
                             ฿{price[0].toLocaleString("th-TH")} – ฿{price[1].toLocaleString("th-TH")}
                         </Typography.Text>
                     </Space>
-                </Col>
-            </Row>
+                </div>
+                <Button type="primary" size="large" block icon={<SearchOutlined />} onClick={search}>
+                    ค้นหาและแสดงสินค้า
+                </Button>
+            </Space>
         </Card>
     );
 };

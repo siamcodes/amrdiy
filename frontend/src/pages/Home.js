@@ -76,19 +76,20 @@ const Home = () => {
                 ]} />
                 </div>
             </section>
-            <section className="home-product-finder-section">
-                <ProductFinder />
-            </section>
             <Row gutter={[24, 24]} align="top">
                 <Col xs={24} lg={6}>
-                    <div id="categories" />
-                    <Card
-                        title={<Space><AppstoreOutlined /> เลือกซื้อสินค้าตามหมวด</Space>}
-                        extra={<Link to="/shop">ดูทั้งหมด <ArrowRightOutlined /></Link>}
-                        className="category-card"
-                    >
-                        <CategoryTree />
-                    </Card>
+                    <aside className="home-sidebar">
+                        <ProductFinder />
+                        <div id="categories">
+                            <Card
+                                title={<Space><AppstoreOutlined /> เลือกซื้อสินค้าตามหมวด</Space>}
+                                extra={<Link to="/shop">ดูทั้งหมด <ArrowRightOutlined /></Link>}
+                                className="category-card"
+                            >
+                                <CategoryTree />
+                            </Card>
+                        </div>
+                    </aside>
                 </Col>
                 <Col xs={24} lg={18}>
                     <section id="new-arrivals" className="product-section">

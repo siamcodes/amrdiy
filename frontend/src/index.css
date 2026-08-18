@@ -1415,12 +1415,31 @@ a {
   width: min(100%, 680px);
 }
 
-.home-product-finder-section {
-    margin-bottom: 24px;
+.home-sidebar {
+    position: sticky;
+    top: 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .home-product-finder .ant-card-body {
     padding: 20px 24px;
+}
+
+.home-product-finder .ant-typography {
+    display: inline-block;
+    margin-bottom: 8px;
+}
+
+.home-sidebar .category-card {
+    position: static;
+}
+
+@media (max-width: 991px) {
+    .home-sidebar {
+        position: static;
+    }
 }
 
 .oauth-button.ant-btn {
