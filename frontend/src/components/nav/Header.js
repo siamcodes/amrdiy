@@ -43,12 +43,16 @@ const Header = () => {
     const primaryItems = useMemo(() => [
             { key: '/', icon: <AppstoreOutlined />, label: <Link to="/">หน้าหลัก</Link> },
             { key: '/shop', icon: <ShoppingOutlined />, label: <Link to="/shop">สินค้า</Link> },
-            { key: '/blog', icon: <ReadOutlined />, label: <Link to="/blog">บทความ</Link> },
             { key: '/user/contact', icon: <ContactsOutlined />, label: <Link to="/user/contact">ติดต่อเรา</Link> },
     ], []);
 
     const accountItems = useMemo(() => {
         const items = [
+            {
+                key: '/blog',
+                icon: <ReadOutlined />,
+                label: <Link to="/blog">บทความ</Link>,
+            },
             {
                 key: '/cart',
                 icon: <ShoppingCartOutlined />,
