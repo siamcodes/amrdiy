@@ -253,6 +253,25 @@ jobs:
                 "${SUDO[@]}" sed -i '/server[[:space:]]*{/a\    client_max_body_size 2048m;' "$NGINX_SITE"
               fi
 
+              if ! "${SUDO[@]}" grep -q 'location \^~ /minio-console/' "$NGINX_SITE"; then
+                "${SUDO[@]}" sed -i '/location \/ {/i\
+                location ^~ /minio-console/ {\
+                    if ($scheme != https) { return 301 https://$host$request_uri; }\
+                    proxy_set_header Host $http_host;\
+                    proxy_set_header X-Real-IP $remote_addr;\
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\
+                    proxy_set_header X-Forwarded-Proto $scheme;\
+                    proxy_http_version 1.1;\
+                    proxy_set_header Upgrade $http_upgrade;\
+                    proxy_set_header Connection "upgrade";\
+                    proxy_buffering off;\
+                    proxy_request_buffering off;\
+                    proxy_read_timeout 3600s;\
+                    proxy_pass http://127.0.0.1:9001/;\
+                }\
+              ' "$NGINX_SITE"
+              fi
+
               if ! "${SUDO[@]}" nginx -t; then
                 "${SUDO[@]}" cp "$BACKUP" "$NGINX_SITE"
                 "${SUDO[@]}" nginx -t
@@ -391,6 +410,7 @@ jobs:
               if ! grep -q '^MINIO_PORT=' .env; then printf 'MINIO_PORT=9000\n' >> .env; fi
               if ! grep -q '^MINIO_USE_SSL=' .env; then printf 'MINIO_USE_SSL=false\n' >> .env; fi
               if ! grep -q '^MINIO_BUCKET=' .env; then printf 'MINIO_BUCKET=amrdiy-course-media\n' >> .env; fi
+              if ! grep -q '^MINIO_CONSOLE_URL=' .env; then printf 'MINIO_CONSOLE_URL=https://amrdiy.com/minio-console/\n' >> .env; fi
               if ! grep -q '^MINIO_ACCESS_KEY=' .env || ! grep -q '^MINIO_SECRET_KEY=' .env; then
                 if [[ ! -f "$minio_credentials" ]]; then
                   umask 077
@@ -423,6 +443,7 @@ jobs:
               minio_port="$(sed -n 's/^MINIO_PORT=//p' .env | tail -n 1)"
               minio_access_key="$(sed -n 's/^MINIO_ACCESS_KEY=//p' .env | tail -n 1)"
               minio_secret_key="$(sed -n 's/^MINIO_SECRET_KEY=//p' .env | tail -n 1)"
+              minio_console_url="$(sed -n 's/^MINIO_CONSOLE_URL=//p' .env | tail -n 1)"
               [[ "$minio_endpoint" == "127.0.0.1" || "$minio_endpoint" == "localhost" ]] || {
                 echo "::error title=MinIO security::Production MINIO_ENDPOINT must be 127.0.0.1 or localhost."
                 exit 1
@@ -431,12 +452,21 @@ jobs:
                 echo "::error title=MinIO configuration::MINIO_PORT must be between 1 and 65535."
                 exit 1
               }
+              [[ "$minio_port" == "9000" ]] || {
+                echo "::error title=MinIO Console::Public console proxy currently requires MINIO_PORT=9000."
+                exit 1
+              }
               [[ ${#minio_access_key} -ge 3 && ${#minio_secret_key} -ge 16 ]] || {
                 echo "::error title=MinIO credentials::Use an access key of at least 3 characters and a secret key of at least 16 characters."
                 exit 1
               }
               ./node_modules/.bin/pm2 delete amrdiy-minio >/dev/null 2>&1 || true
+              [[ "$minio_console_url" == https://* ]] || {
+                echo "::error title=MinIO Console::MINIO_CONSOLE_URL must use HTTPS."
+                exit 1
+              }
               MINIO_ROOT_USER="$minio_access_key" MINIO_ROOT_PASSWORD="$minio_secret_key" \
+                MINIO_BROWSER_REDIRECT_URL="$minio_console_url" \
                 ./node_modules/.bin/pm2 start "$VPS_PATH/bin/minio" \
                   --name amrdiy-minio --interpreter none -- \
                   server "$VPS_PATH/minio-data" \
@@ -523,6 +553,9 @@ jobs:
              curl --retry 4 --retry-delay 3 \
                --fail --silent --show-error --output /dev/null \
                'https://amrdiy.com/' || { echo '::error title=Public frontend health check::amrdiy.com is not serving the deployed frontend'; exit 1; }; \
+             curl --retry 4 --retry-delay 3 --location \
+               --fail --silent --show-error --output /dev/null \
+               'https://amrdiy.com/minio-console/' || { echo '::error title=MinIO Console health check::Public MinIO Console is unavailable'; exit 1; }; \
              curl --fail --silent --show-error \
                'http://127.0.0.1/api/health' || echo '::warning title=Reverse proxy health check::Nginx does not expose /api/health on port 80; verify that FRONTEND_ENV VITE_API points to the backend URL'"
 
