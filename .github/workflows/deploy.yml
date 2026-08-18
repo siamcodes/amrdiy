@@ -225,7 +225,7 @@ jobs:
           ssh -o BatchMode=yes -o IdentitiesOnly=yes \
             -i "$HOME/.ssh/amrdiy_deploy_key" \
             -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
-            "VPS_PATH='$VPS_PATH' bash -s" <<'REMOTE_SCRIPT'
+            "VPS_PATH='$VPS_PATH' NODE_VERSION='$NODE_VERSION' bash -s" <<'REMOTE_SCRIPT'
               set -euo pipefail
 
               DEPLOY_STAGE="initialize"
@@ -234,23 +234,33 @@ jobs:
               DEPLOY_STAGE="configure-node-path"
               export PM2_HOME="$VPS_PATH/.pm2"
               mkdir -p "$PM2_HOME"
-              NVM_NODE_BIN="$HOME/.nvm/versions/node/v24.18.0/bin"
-              if [[ -x "$NVM_NODE_BIN/node" && -x "$NVM_NODE_BIN/npm" ]]; then
-                export PATH="$NVM_NODE_BIN:/usr/local/bin:/usr/bin:/bin"
-              else
+
+              export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+              if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+                # SSH runs a non-interactive shell, so NVM must be loaded explicitly.
+                # shellcheck disable=SC1090
+                . "$NVM_DIR/nvm.sh"
+                DEPLOY_STAGE="install-node"
+                nvm install "$NODE_VERSION"
+                nvm use "$NODE_VERSION"
+              elif [[ -x "/usr/local/bin/node" && -x "/usr/local/bin/npm" ]]; then
                 export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
+              elif [[ -x "/usr/bin/node" && -x "/usr/bin/npm" ]]; then
+                export PATH="/usr/bin:/usr/local/bin:/bin:$PATH"
               fi
 
               DEPLOY_STAGE="validate-node"
               command -v node >/dev/null || {
-                echo "Node.js was not found on the VPS"
+                echo "::error title=Node.js unavailable::Node.js was not found for VPS user $(id -un). Install NVM in $NVM_DIR or install Node.js $NODE_VERSION system-wide."
                 exit 1
               }
               DEPLOY_STAGE="validate-npm"
               command -v npm >/dev/null || {
-                echo "npm was not found on the VPS"
+                echo "::error title=npm unavailable::npm was not found for VPS user $(id -un)."
                 exit 1
               }
+              node --version
+              npm --version
 
               DEPLOY_STAGE="change-backend-directory"
               cd "$VPS_PATH/backend"
@@ -323,11 +333,13 @@ jobs:
           ssh -o BatchMode=yes -o IdentitiesOnly=yes \
             -i "$HOME/.ssh/amrdiy_deploy_key" \
             -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" \
-            "VPS_PATH='$VPS_PATH' bash -s" <<'REMOTE_SCRIPT'
+            "VPS_PATH='$VPS_PATH' NODE_VERSION='$NODE_VERSION' bash -s" <<'REMOTE_SCRIPT'
               export PM2_HOME="$VPS_PATH/.pm2"
-              NVM_NODE_BIN="$HOME/.nvm/versions/node/v24.18.0/bin"
-              if [[ -x "$NVM_NODE_BIN/node" && -x "$NVM_NODE_BIN/npm" ]]; then
-                export PATH="$NVM_NODE_BIN:/usr/local/bin:/usr/bin:/bin"
+              export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+              if [[ -s "$NVM_DIR/nvm.sh" ]]; then
+                # shellcheck disable=SC1090
+                . "$NVM_DIR/nvm.sh"
+                nvm use "$NODE_VERSION" >/dev/null 2>&1 || true
               else
                 export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
               fi
