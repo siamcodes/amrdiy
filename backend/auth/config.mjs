@@ -52,6 +52,9 @@ const facebookProvider = () => {
       params: {
         config_id: configId,
         response_type: "code",
+        // An explicit empty scope prevents Auth.js from adding its OAuth
+        // fallback (`openid profile email`) to this Business Login flow.
+        scope: "",
       },
     };
   }

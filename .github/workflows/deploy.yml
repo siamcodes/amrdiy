@@ -341,6 +341,12 @@ jobs:
               DEPLOY_STAGE="change-backend-directory"
               cd "$VPS_PATH/backend"
 
+              DEPLOY_STAGE="validate-facebook-configuration"
+              grep -qE '^AUTH_FACEBOOK_CONFIG_ID=[0-9]+$' .env || {
+                echo "::error title=Facebook configuration::AUTH_FACEBOOK_CONFIG_ID is missing or invalid in the deployed backend environment."
+                exit 1
+              }
+
               DEPLOY_STAGE="validate-local-mongodb"
               mongo_uri="$(sed -n 's/^MONGO_URI=//p' .env | tail -n 1)"
               if [[ "$mongo_uri" == mongodb://*127.0.0.1:27018* || "$mongo_uri" == mongodb://*localhost:27018* ]]; then
