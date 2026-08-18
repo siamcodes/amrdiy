@@ -32,6 +32,33 @@ const oauthProvider = (factory, idName, secretName) => {
     : null;
 };
 
+const facebookProvider = () => {
+  const clientId = process.env.AUTH_FACEBOOK_ID?.trim();
+  const clientSecret = process.env.AUTH_FACEBOOK_SECRET?.trim();
+  if (!clientId || !clientSecret) return null;
+
+  const provider = Facebook({
+    clientId,
+    clientSecret,
+    allowDangerousEmailAccountLinking: true,
+  });
+  const configId = process.env.AUTH_FACEBOOK_CONFIG_ID?.trim();
+
+  if (configId) {
+    // Facebook Login for Business defines permissions in its configuration.
+    // Do not send Auth.js's default `scope=email`, which Meta rejects for this flow.
+    provider.authorization = {
+      url: "https://www.facebook.com/v19.0/dialog/oauth",
+      params: {
+        config_id: configId,
+        response_type: "code",
+      },
+    };
+  }
+
+  return provider;
+};
+
 const credentialsProvider = Credentials({
   name: "Username or email",
   credentials: {
@@ -70,7 +97,7 @@ export const authConfig = {
   providers: [
     credentialsProvider,
     oauthProvider(Google, "AUTH_GOOGLE_ID", "AUTH_GOOGLE_SECRET"),
-    oauthProvider(Facebook, "AUTH_FACEBOOK_ID", "AUTH_FACEBOOK_SECRET"),
+    facebookProvider(),
     oauthProvider(GitHub, "AUTH_GITHUB_ID", "AUTH_GITHUB_SECRET"),
     oauthProvider(LINE, "AUTH_LINE_ID", "AUTH_LINE_SECRET"),
     oauthProvider(Apple, "AUTH_APPLE_ID", "AUTH_APPLE_SECRET"),
