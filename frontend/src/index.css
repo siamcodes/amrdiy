@@ -1415,6 +1415,14 @@ a {
   width: min(100%, 680px);
 }
 
+.home-product-finder-section {
+    margin-bottom: 24px;
+}
+
+.home-product-finder .ant-card-body {
+    padding: 20px 24px;
+}
+
 .oauth-button.ant-btn {
     height: 44px;
     font-weight: 600;

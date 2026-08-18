@@ -49,6 +49,7 @@ import Jumbotron from "../components/cards/Jumbotron";
 import NewArrivals from "../components/home/NewArrivals";
 import BestSellers from "../components/home/BestSellers";
 import CategoryTree from "../components/category/CategoryTree";
+import ProductFinder from "../components/home/ProductFinder";
 import { Card, Col, Row, Space, Typography } from "antd";
 import { AppstoreOutlined, ArrowRightOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
@@ -74,6 +75,9 @@ const Home = () => {
                     "พร้อมส่งจากประเทศไทย"
                 ]} />
                 </div>
+            </section>
+            <section className="home-product-finder-section">
+                <ProductFinder />
             </section>
             <Row gutter={[24, 24]} align="top">
                 <Col xs={24} lg={6}>

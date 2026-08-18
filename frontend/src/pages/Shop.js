@@ -7,6 +7,7 @@ import {
     AppstoreOutlined, ClearOutlined, SearchOutlined,
 } from "@ant-design/icons";
 import { useSelector } from "react-redux";
+import { useSearchParams } from "react-router-dom";
 import ProductCard from "../components/cards/ProductCard";
 import ColorSelect from "../components/forms/ColorSelect";
 import { fetchProductsByFilter } from "../functions/product";
@@ -24,13 +25,21 @@ const colors = [
 
 const Shop = () => {
     const navbarSearch = useSelector((state) => state.search?.text || "");
+    const [searchParams] = useSearchParams();
     const [products, setProducts] = useState([]);
     const [recentProducts, setRecentProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [keyword, setKeyword] = useState(navbarSearch);
-    const [categoryPath, setCategoryPath] = useState([]);
-    const [price, setPrice] = useState([0, 50000]);
-    const [brandRef, setBrandRef] = useState("");
+    const [keyword, setKeyword] = useState(searchParams.get("query") || navbarSearch);
+    const [categoryPath, setCategoryPath] = useState(() => [
+        searchParams.get("category") && `category:${searchParams.get("category")}`,
+        searchParams.get("sub") && `sub:${searchParams.get("sub")}`,
+        searchParams.get("productType") && `productType:${searchParams.get("productType")}`,
+    ].filter(Boolean));
+    const [price, setPrice] = useState([
+        Number(searchParams.get("minPrice")) || 0,
+        Number(searchParams.get("maxPrice")) || 50000,
+    ]);
+    const [brandRef, setBrandRef] = useState(searchParams.get("brandRef") || "");
     const [color, setColor] = useState("");
     const [shipping, setShipping] = useState("");
     const [stars, setStars] = useState(0);
@@ -55,8 +64,8 @@ const Shop = () => {
     }, []);
 
     useEffect(() => {
-        setKeyword(navbarSearch);
-    }, [navbarSearch]);
+        if (!searchParams.has("query")) setKeyword(navbarSearch);
+    }, [navbarSearch, searchParams]);
 
     const selectedCategory = categoryPath.find((value) => value.startsWith("category:"))?.split(":")[1];
     const selectedSub = categoryPath.find((value) => value.startsWith("sub:"))?.split(":")[1];
@@ -123,19 +132,6 @@ const Shop = () => {
                 </div>
                 <Typography.Text type="secondary">{products.length} รายการ</Typography.Text>
             </div>
-
-            {recentProducts.length > 0 && (
-                <section className="recent-products-section">
-                    <Title level={4}>สินค้าที่คุณดูล่าสุด</Title>
-                    <div className="recent-products-scroll">
-                        {recentProducts.map((product) => (
-                            <div className="recent-product-item" key={product._id}>
-                                <ProductCard product={product} />
-                            </div>
-                        ))}
-                    </div>
-                </section>
-            )}
 
             <Row gutter={[20, 20]} align="top">
                 <Col xs={24} lg={6}>
@@ -226,6 +222,19 @@ const Shop = () => {
                     )}
                 </Col>
             </Row>
+
+            {recentProducts.length > 0 && (
+                <section className="recent-products-section">
+                    <Title level={4}>สินค้าที่คุณดูล่าสุด</Title>
+                    <div className="recent-products-scroll">
+                        {recentProducts.map((product) => (
+                            <div className="recent-product-item" key={product._id}>
+                                <ProductCard product={product} />
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            )}
         </div>
     );
 };
