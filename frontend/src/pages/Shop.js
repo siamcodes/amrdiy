@@ -124,13 +124,12 @@ const Shop = () => {
     return (
         <div className="shop-page">
             <div className="shop-heading">
-                <div>
+                <div className="shop-title-row">
                     <Title level={2}><AppstoreOutlined /> สินค้าทั้งหมด</Title>
-                    <Paragraph type="secondary">
-                        ค้นหาและเลือกสินค้าจากหมวดหมู่ 3 ระดับ
-                    </Paragraph>
+                    <Typography.Text type="secondary" className="shop-product-count">
+                        {products.length} รายการ
+                    </Typography.Text>
                 </div>
-                <Typography.Text type="secondary">{products.length} รายการ</Typography.Text>
             </div>
 
             <Row gutter={[20, 20]} align="top">

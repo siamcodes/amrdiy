@@ -1058,16 +1058,28 @@ a {
     margin-bottom: 48px;
 }
 
-.shop-heading {
-    display: flex;
-    gap: 20px;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 20px;
+.shop-page {
+    margin-top: -16px;
 }
 
-.shop-heading h2 {
-    margin-bottom: 4px;
+.shop-heading {
+    margin-bottom: 16px;
+}
+
+.shop-title-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.shop-title-row h2 {
+    margin-bottom: 0;
+}
+
+.shop-product-count {
+    flex: 0 0 auto;
+    white-space: nowrap;
 }
 
 .shop-filter-card {
