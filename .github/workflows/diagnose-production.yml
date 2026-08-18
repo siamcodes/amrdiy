@@ -36,6 +36,7 @@ jobs:
             -i "$HOME/.ssh/amrdiy_deploy_key" \
             -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" 'bash -s' <<'REMOTE_SCRIPT'
               set -euo pipefail
+              export PATH="/usr/sbin:/usr/local/sbin:/usr/local/bin:/usr/bin:/bin:$PATH"
               printf 'user=%s\n' "$(id -un)"
               printf 'nginx=%s\n' "$(command -v nginx || true)"
               if [[ "$(id -u)" == "0" ]]; then
@@ -69,6 +70,9 @@ jobs:
               curl --silent --show-error --output /dev/null \
                 --header 'Host: amrdiy.com' \
                 --write-out 'localhost_amrdiy=%{http_code}\n' http://127.0.0.1/ || true
+              curl --insecure --silent --show-error --output /dev/null \
+                --resolve 'amrdiy.com:443:127.0.0.1' \
+                --write-out 'localhost_amrdiy_https=%{http_code}\n' https://amrdiy.com/ || true
               curl --silent --show-error --output /dev/null \
                 --header 'Host: amrdiy.com' \
                 --write-out 'vite_amrdiy=%{http_code}\n' http://127.0.0.1:3000/ || true
