@@ -8,17 +8,23 @@ import {
   SortAscendingOutlined,
   SortDescendingOutlined,
 } from "@ant-design/icons";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { getBlogs } from "../../functions/blog";
 
 const { Title, Paragraph, Text } = Typography;
 
 const BlogList = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("search") || "");
   const [sort, setSort] = useState("latest");
+
+  useEffect(() => {
+    setSearch(searchParams.get("search") || "");
+    setPage(1);
+  }, [searchParams]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -43,7 +49,15 @@ const BlogList = () => {
         enterButton
         placeholder="ค้นหาจากหัวข้อ เนื้อหา หรือแท็ก..."
         value={search}
-        onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+        onChange={(e) => {
+          const nextSearch = e.target.value;
+          setSearch(nextSearch);
+          setPage(1);
+          const nextParams = new URLSearchParams(searchParams);
+          if (nextSearch.trim()) nextParams.set("search", nextSearch);
+          else nextParams.delete("search");
+          setSearchParams(nextParams, { replace: true });
+        }} />
     </div>
     <div className="blog-list-controls">
       <Text type="secondary">พบบทความ {total.toLocaleString("th-TH")} เรื่อง</Text>

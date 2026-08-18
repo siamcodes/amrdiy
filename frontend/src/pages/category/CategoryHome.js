@@ -25,7 +25,7 @@ import {
     SearchOutlined,
     ShoppingOutlined,
 } from "@ant-design/icons";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { getCategories, getCategory, getCategorySubs } from "../../functions/category";
 import ProductCard from "../../components/cards/ProductCard";
 
@@ -34,19 +34,23 @@ const { Title, Paragraph, Text } = Typography;
 const CategoryHome = ({ match }) => {
     const { slug } = match.params;
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [categories, setCategories] = useState([]);
     const [category, setCategory] = useState(null);
     const [subs, setSubs] = useState([]);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [keyword, setKeyword] = useState("");
+    const [keyword, setKeyword] = useState(searchParams.get("query") || "");
     const [sort, setSort] = useState("featured");
     const [stockOnly, setStockOnly] = useState(false);
 
     useEffect(() => {
+        setKeyword(searchParams.get("query") || "");
+    }, [searchParams]);
+
+    useEffect(() => {
         let active = true;
         setLoading(true);
-        setKeyword("");
         Promise.all([getCategory(slug), getCategories()])
             .then(async ([categoryResponse, categoriesResponse]) => {
                 if (!active) return;

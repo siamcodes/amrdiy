@@ -64,7 +64,11 @@ const Shop = () => {
     }, []);
 
     useEffect(() => {
-        if (!searchParams.has("query")) setKeyword(navbarSearch);
+        if (searchParams.has("query")) {
+            setKeyword(searchParams.get("query") || "");
+        } else {
+            setKeyword(navbarSearch);
+        }
     }, [navbarSearch, searchParams]);
 
     const selectedCategory = categoryPath.find((value) => value.startsWith("category:"))?.split(":")[1];

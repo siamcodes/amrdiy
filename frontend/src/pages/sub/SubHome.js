@@ -7,7 +7,7 @@ import {
     ApartmentOutlined, FilterOutlined, HomeOutlined, RightOutlined,
     SearchOutlined, ThunderboltOutlined,
 } from "@ant-design/icons";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { getSub, getSubs } from "../../functions/sub";
 import ProductCard from "../../components/cards/ProductCard";
 
@@ -16,20 +16,24 @@ const { Title, Paragraph, Text } = Typography;
 const SubHome = ({ match }) => {
     const { slug } = match.params;
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [sub, setSub] = useState(null);
     const [siblings, setSiblings] = useState([]);
     const [productTypes, setProductTypes] = useState([]);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [keyword, setKeyword] = useState("");
+    const [keyword, setKeyword] = useState(searchParams.get("query") || "");
     const [sort, setSort] = useState("featured");
     const [stockOnly, setStockOnly] = useState(false);
     const [typeId, setTypeId] = useState("all");
 
     useEffect(() => {
+        setKeyword(searchParams.get("query") || "");
+    }, [searchParams]);
+
+    useEffect(() => {
         let active = true;
         setLoading(true);
-        setKeyword("");
         setTypeId("all");
         Promise.all([getSub(slug), getSubs()])
             .then(([subResponse, subsResponse]) => {

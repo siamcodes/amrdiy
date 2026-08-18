@@ -1,35 +1,63 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { Input } from "antd";
 
 const Search = () => {
     const dispatch = useDispatch();
+    const location = useLocation();
     const { search } = useSelector((state) => ({ ...state }));
-    const { text } = search;
-
     const navigate = useNavigate();
+    const isBlogPage = location.pathname.startsWith("/blog");
+    const isShopPage = location.pathname === "/shop";
+    const isCatalogPage = location.pathname.startsWith("/category/")
+        || location.pathname.startsWith("/sub/");
+    const [value, setValue] = useState("");
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        if (isBlogPage) {
+            setValue(params.get("search") || "");
+        } else if (isShopPage || isCatalogPage) {
+            setValue(params.get("query") ?? search.text ?? "");
+        } else {
+            setValue(search.text ?? "");
+        }
+    }, [isBlogPage, isCatalogPage, isShopPage, location.search, search.text]);
 
     const handleChange = (e) => {
-        dispatch({
-            type: "SEARCH_QUERY",
-            payload: { text: e.target.value },
-        });
+        const nextValue = e.target.value;
+        setValue(nextValue);
+        if (!isBlogPage) {
+            dispatch({ type: "SEARCH_QUERY", payload: { text: nextValue } });
+        }
     };
 
     const handleSubmit = () => {
-        const query = text.trim();
-        if (query) navigate(`/shop?${encodeURIComponent(query)}`);
+        const query = value.trim();
+        if (isBlogPage) {
+            navigate(query ? `/blog?search=${encodeURIComponent(query)}` : "/blog");
+            return;
+        }
+
+        dispatch({ type: "SEARCH_QUERY", payload: { text: query } });
+        if (isCatalogPage) {
+            navigate(query
+                ? `${location.pathname}?query=${encodeURIComponent(query)}`
+                : location.pathname);
+            return;
+        }
+        navigate(query ? `/shop?query=${encodeURIComponent(query)}` : "/shop");
     };
 
     return (
         <Input.Search
             allowClear
-            value={text}
+            value={value}
             onChange={handleChange}
             onSearch={handleSubmit}
-            placeholder="ค้นหาสินค้า"
-            aria-label="ค้นหาสินค้า"
+            placeholder={isBlogPage ? "ค้นหาบทความ" : "ค้นหาสินค้า"}
+            aria-label={isBlogPage ? "ค้นหาบทความในหน้าปัจจุบัน" : "ค้นหาสินค้า"}
         />
     );
 };
