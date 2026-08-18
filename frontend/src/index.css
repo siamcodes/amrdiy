@@ -1601,6 +1601,142 @@ a {
     cursor: pointer;
 }
 
+.course-hero {
+    margin-bottom: 28px;
+    padding: clamp(24px, 5vw, 56px);
+    color: #fff;
+    background: linear-gradient(135deg, #071724, #103b5e 60%, #1677ff);
+    border-radius: 24px;
+}
+
+.course-hero h1,
+.course-hero .ant-typography {
+    color: #fff;
+}
+
+.course-filters {
+    max-width: 850px;
+    margin-top: 24px;
+}
+
+.course-card {
+    height: 100%;
+    overflow: hidden;
+}
+
+.course-card .ant-card-cover img,
+.course-card > .ant-card-cover img {
+    width: 100%;
+    height: 210px;
+    padding: 12px;
+    object-fit: cover;
+    background: #eef4fb;
+}
+
+.course-card-price {
+    margin-top: 18px;
+    color: var(--amr-blue-700);
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.course-detail-page h1 {
+    margin-top: 12px;
+}
+
+.course-subtitle {
+    font-size: 18px;
+}
+
+.course-description,
+.course-detail-page section {
+    margin-top: 28px;
+}
+
+.course-description img {
+    max-width: 100%;
+}
+
+.course-check {
+    margin-right: 8px;
+    color: var(--amr-green-600);
+}
+
+.course-lesson-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 0;
+}
+
+.course-enroll-card {
+    position: sticky;
+    top: 92px;
+}
+
+.course-enroll-card .ant-card-cover img {
+    max-height: 260px;
+    padding: 12px;
+    object-fit: cover;
+}
+
+.course-enroll-card .StripeElement {
+    padding: 13px;
+    border: 1px solid #d9d9d9;
+    border-radius: 10px;
+}
+
+.course-learn-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 20px;
+}
+
+.course-learning-sidebar {
+    position: sticky;
+    top: 92px;
+}
+
+.course-lesson-button {
+    height: auto;
+    min-height: 36px;
+    white-space: normal;
+    text-align: left;
+}
+
+.course-video {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    margin-bottom: 20px;
+    overflow: hidden;
+    background: #071724;
+    border-radius: 14px;
+}
+
+.course-video iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+@media (max-width: 991px) {
+    .course-enroll-card,
+    .course-learning-sidebar {
+        position: static;
+    }
+
+    .course-learn-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}
+
 .content img{
     max-width: 100%;
     max-height: 480px; 

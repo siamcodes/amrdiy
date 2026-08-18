@@ -12,6 +12,7 @@ import {
     ContactsOutlined,
     MenuOutlined,
     ReadOutlined,
+    BookOutlined,
 } from '@ant-design/icons';
 import { Link, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from "react-redux";
@@ -43,6 +44,7 @@ const Header = () => {
     const primaryItems = useMemo(() => [
             { key: '/', icon: <AppstoreOutlined />, label: <Link to="/">หน้าหลัก</Link> },
             { key: '/shop', icon: <ShoppingOutlined />, label: <Link to="/shop">สินค้า</Link> },
+            { key: '/courses', icon: <BookOutlined />, label: <Link to="/courses">คอร์ส</Link> },
             { key: '/user/contact', icon: <ContactsOutlined />, label: <Link to="/user/contact">ติดต่อเรา</Link> },
     ], []);
 
@@ -72,6 +74,7 @@ const Header = () => {
                 label: user.email?.split('@')[0] || 'บัญชี',
                 children: [
                     { key: dashboardPath, icon: <UnorderedListOutlined />, label: <Link to={dashboardPath}>แดชบอร์ด</Link> },
+                    { key: '/user/courses', icon: <BookOutlined />, label: <Link to="/user/courses">คอร์สของฉัน</Link> },
                     { key: '/user/profile', icon: <UserOutlined />, label: 'โปรไฟล์', onClick: () => navigate('/user/profile') },
                     { key: 'logout', icon: <LogoutOutlined />, label: 'ออกจากระบบ', onClick: logout },
                 ],
@@ -126,6 +129,13 @@ const Header = () => {
                                 aria-current={location.pathname === '/shop' ? 'page' : undefined}
                             >
                                 สินค้า
+                            </Link>
+                            <Link
+                                to="/courses"
+                                className={location.pathname.startsWith('/courses') ? 'is-active' : undefined}
+                                aria-current={location.pathname.startsWith('/courses') ? 'page' : undefined}
+                            >
+                                คอร์ส
                             </Link>
                             <Link
                                 to="/blog"

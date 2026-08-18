@@ -9,6 +9,7 @@ const Search = () => {
     const { search } = useSelector((state) => ({ ...state }));
     const navigate = useNavigate();
     const isBlogPage = location.pathname.startsWith("/blog");
+    const isCoursePage = location.pathname.startsWith("/courses");
     const isShopPage = location.pathname === "/shop";
     const isCatalogPage = location.pathname.startsWith("/category/")
         || location.pathname.startsWith("/sub/");
@@ -16,19 +17,19 @@ const Search = () => {
 
     useEffect(() => {
         const params = new URLSearchParams(location.search);
-        if (isBlogPage) {
+        if (isBlogPage || isCoursePage) {
             setValue(params.get("search") || "");
         } else if (isShopPage || isCatalogPage) {
             setValue(params.get("query") ?? search.text ?? "");
         } else {
             setValue(search.text ?? "");
         }
-    }, [isBlogPage, isCatalogPage, isShopPage, location.search, search.text]);
+    }, [isBlogPage, isCatalogPage, isCoursePage, isShopPage, location.search, search.text]);
 
     const handleChange = (e) => {
         const nextValue = e.target.value;
         setValue(nextValue);
-        if (!isBlogPage) {
+        if (!isBlogPage && !isCoursePage) {
             dispatch({ type: "SEARCH_QUERY", payload: { text: nextValue } });
         }
     };
@@ -37,6 +38,10 @@ const Search = () => {
         const query = value.trim();
         if (isBlogPage) {
             navigate(query ? `/blog?search=${encodeURIComponent(query)}` : "/blog");
+            return;
+        }
+        if (isCoursePage) {
+            navigate(query ? `/courses?search=${encodeURIComponent(query)}` : "/courses");
             return;
         }
 
@@ -56,8 +61,8 @@ const Search = () => {
             value={value}
             onChange={handleChange}
             onSearch={handleSubmit}
-            placeholder={isBlogPage ? "ค้นหาบทความ" : "ค้นหาสินค้า"}
-            aria-label={isBlogPage ? "ค้นหาบทความในหน้าปัจจุบัน" : "ค้นหาสินค้า"}
+            placeholder={isBlogPage ? "ค้นหาบทความ" : isCoursePage ? "ค้นหาคอร์ส" : "ค้นหาสินค้า"}
+            aria-label={isBlogPage ? "ค้นหาบทความในหน้าปัจจุบัน" : isCoursePage ? "ค้นหาคอร์ส" : "ค้นหาสินค้า"}
         />
     );
 };

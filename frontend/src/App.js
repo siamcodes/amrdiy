@@ -25,6 +25,11 @@ import ShippingManagement from './pages/admin/ShippingManagement';
 import AdminBlogs from './pages/admin/AdminBlogs';
 import BlogList from './pages/blog/BlogList';
 import BlogDetail from './pages/blog/BlogDetail';
+import CourseList from './pages/course/CourseList';
+import CourseDetail from './pages/course/CourseDetail';
+import CourseLearn from './pages/course/CourseLearn';
+import MyCourses from './pages/user/MyCourses';
+import AdminCourses from './pages/admin/AdminCourses';
 import CatalogManagement from './pages/admin/CatalogManagement';
 import CategoryCreate from './pages/admin/category/CategoryCreate';
 import CategoryUpdate from './pages/admin/category/CategoryUpdate';
@@ -151,6 +156,7 @@ const App = () => {
         <Route path="/admin/users" element={<AdminRoute component={AdminUsers} />} />
         <Route path="/admin/shipping" element={<AdminRoute component={ShippingManagement} />} />
         <Route path="/admin/blogs" element={<AdminRoute component={AdminBlogs} />} />
+        <Route path="/admin/courses" element={<AdminRoute component={AdminCourses} />} />
         <Route path="/admin/catalog" element={<AdminRoute component={CatalogManagement} />} />
         <Route path="/admin/category" element={<AdminRoute component={CategoryCreate} />} />
         <Route path="/admin/category/:slug" element={<AdminRoute component={CategoryUpdate} />} />
@@ -173,6 +179,10 @@ const App = () => {
         <Route path="/shop" element={<LegacyPage component={Shop} />} />
         <Route path="/blog" element={<LegacyPage component={BlogList} />} />
         <Route path="/blog/:slug" element={<LegacyPage component={BlogDetail} />} />
+        <Route path="/courses" element={<LegacyPage component={CourseList} />} />
+        <Route path="/courses/:slug" element={<LegacyPage component={CourseDetail} />} />
+        <Route path="/courses/:slug/learn" element={<UserRoute component={CourseLearn} />} />
+        <Route path="/user/courses" element={<UserRoute component={MyCourses} />} />
         <Route path="/cart" element={<LegacyPage component={Cart} />} />
         <Route path="/checkout" element={<UserRoute component={Checkout} />} />
         <Route path="/admin/coupon" element={<AdminRoute component={CreateCouponPage} />} />

@@ -4,6 +4,7 @@ import {
     AppstoreOutlined, DashboardOutlined, GiftOutlined, ProfileOutlined,
     DatabaseOutlined, FileTextOutlined, MoonOutlined, ShoppingCartOutlined, ShoppingOutlined,
     SunOutlined, TagsOutlined, TeamOutlined, TruckOutlined,
+    BookOutlined,
 } from "@ant-design/icons";
 import { Link, useLocation } from "react-router-dom";
 
@@ -20,6 +21,7 @@ const AdminNav = () => {
         { key: "/admin/orders", icon: <ShoppingCartOutlined />, label: <Link to="/admin/orders">คำสั่งซื้อ</Link> },
         { key: "/admin/shipping", icon: <TruckOutlined />, label: <Link to="/admin/shipping">การจัดส่ง</Link> },
         { key: "/admin/blogs", icon: <FileTextOutlined />, label: <Link to="/admin/blogs">บทความ</Link> },
+        { key: "/admin/courses", icon: <BookOutlined />, label: <Link to="/admin/courses">คอร์สเรียน</Link> },
         { key: "/admin/users", icon: <TeamOutlined />, label: <Link to="/admin/users">ข้อมูลลูกค้า</Link> },
         { key: "/admin/catalog", icon: <DatabaseOutlined />, label: <Link to="/admin/catalog">Catalog</Link> },
         { key: "/admin/product", icon: <ShoppingOutlined />, label: <Link to="/admin/product">เพิ่มสินค้า</Link> },
