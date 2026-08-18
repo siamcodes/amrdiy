@@ -50,6 +50,12 @@ export default defineConfig(({ mode }) => {
       },
     },
   },
+  server: {
+    allowedHosts: ["amrdiy.com", "www.amrdiy.com"],
+  },
+  preview: {
+    allowedHosts: ["amrdiy.com", "www.amrdiy.com"],
+  },
   build: {
     outDir: "build",
   },
