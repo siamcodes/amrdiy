@@ -115,6 +115,22 @@ const Header = () => {
                         <Link to="/" className="brand">
                             <img src="/amrdiy-logo.svg" alt="AMR DIY" className="brand-logo" />
                         </Link>
+                        <nav className="mobile-quick-menu" aria-label="เมนูหลักบนมือถือ">
+                            <Link
+                                to="/shop"
+                                className={location.pathname === '/shop' ? 'is-active' : undefined}
+                                aria-current={location.pathname === '/shop' ? 'page' : undefined}
+                            >
+                                สินค้า
+                            </Link>
+                            <Link
+                                to="/blog"
+                                className={location.pathname.startsWith('/blog') ? 'is-active' : undefined}
+                                aria-current={location.pathname.startsWith('/blog') ? 'page' : undefined}
+                            >
+                                บทความ
+                            </Link>
+                        </nav>
                         <Space>
                             <Badge count={cart.length} size="small">
                                 <Button type="text" icon={<ShoppingCartOutlined />} onClick={() => navigate('/cart')} />
