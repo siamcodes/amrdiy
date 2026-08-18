@@ -48,7 +48,7 @@ a {
     top: 0;
     z-index: 100;
     display: grid;
-    grid-template-columns: minmax(370px, 1fr) minmax(260px, 480px) minmax(300px, 1fr);
+    grid-template-columns: minmax(370px, 1fr) minmax(280px, 480px) minmax(370px, 1fr);
     align-items: center;
     gap: 24px;
     height: 72px;
@@ -146,6 +146,32 @@ a {
 
 .header-search {
     width: 100%;
+    max-width: 480px;
+    justify-self: center;
+}
+
+@media (min-width: 1200px) and (max-width: 1399px) {
+    .site-header {
+        grid-template-columns: minmax(0, 1fr) 280px minmax(0, 1fr);
+        gap: 12px;
+        padding-inline: 16px;
+    }
+
+    .brand-logo {
+        width: 96px;
+    }
+
+    .primary-menu {
+        margin-left: 4px;
+    }
+
+    .site-header .primary-menu > .ant-menu-item,
+    .site-header .primary-menu > .ant-menu-submenu,
+    .site-header .account-menu > .ant-menu-item,
+    .site-header .account-menu > .ant-menu-submenu {
+        padding-inline: 5px;
+        font-size: 12px;
+    }
 }
 
 .header-search .ant-input-search {
