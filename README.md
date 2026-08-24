@@ -74,13 +74,14 @@ CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 
-MINIO_ENDPOINT=127.0.0.1
-MINIO_PORT=9000
-MINIO_USE_SSL=false
+MINIO_ENDPOINT=https://minio.amrdiy.com
+# MINIO_PORT=443
+MINIO_USE_SSL=true
 MINIO_ACCESS_KEY=your_minio_username
 MINIO_SECRET_KEY=your_long_random_password
 MINIO_BUCKET=amrdiy-course-media
-MINIO_CONSOLE_URL=http://localhost:9001
+MINIO_DATA_DIR=/data/minio
+MINIO_CONSOLE_URL=https://minio.amrdiy.com
 
 STRIPE_SECRET=sk_test_replace_me
 AUTH_SECRET=replace_with_at_least_32_random_characters
@@ -162,7 +163,7 @@ Cloudinary ใช้เก็บรูปสินค้า, Profile, Blog, Paym
 ```bash
 export MINIO_ROOT_USER=your_minio_username
 export MINIO_ROOT_PASSWORD=your_long_random_password
-minio server ./minio-data --address 127.0.0.1:9000 --console-address 127.0.0.1:9001
+minio server /data/minio --address 127.0.0.1:9000 --console-address 127.0.0.1:9001
 ```
 
 Console: `http://localhost:9001`
@@ -300,9 +301,9 @@ VITE_PAYMENT_QR_IMAGE=https://example.com/production-qr.png
 
 ## 14. เตรียม Debian VPS
 
-VPS ต้องมี SSH, deploy user, Nginx, MongoDB หรือ external connection, `curl`, `rsync`, `sudo`, `openssl` และ Passwordless sudo ตาม workflow รวมถึง Domain/HTTPS certificate สำหรับ `amrdiy.com`
+VPS ต้องมี SSH, deploy user, Nginx, MongoDB หรือ external connection, `curl`, `rsync`, `sudo`, `openssl` และ Passwordless sudo ตาม workflow รวมถึง Domain/HTTPS certificate สำหรับ `amrdiy.com` และ `minio.amrdiy.com` โดย DNS ของทั้งสองโดเมนต้องชี้มาที่ VPS
 
-Workflow จัดการ Node.js `24.18.0`, npm dependencies, MinIO binary และ PM2 processes โดยคาดว่า Nginx site อยู่ที่:
+Workflow จัดการ Node.js `24.18.0`, npm dependencies, MinIO binary และ PM2 processes โดยคาดว่า Nginx site ของ Frontend อยู่ที่:
 
 ```text
 /etc/nginx/sites-enabled/amrdiy.com
@@ -325,7 +326,7 @@ Workflow จัดการ Node.js `24.18.0`, npm dependencies, MinIO binary �
 Console:
 
 ```text
-https://amrdiy.com/minio-console/
+https://minio.amrdiy.com
 ```
 
 Console เปิดผ่าน HTTPS แต่ต้องล็อกอิน Bucket วิดีโอเป็น private เพื่อป้องกันการข้ามสิทธิ์ Course
@@ -349,7 +350,7 @@ grep -E '^MINIO_(ACCESS_KEY|SECRET_KEY)=' "$VPS_PATH/.minio.env"
 
 ```text
 $VPS_PATH/bin/minio       MinIO executable
-$VPS_PATH/minio-data      Course video storage
+/data/minio                Course video storage
 $VPS_PATH/.minio.env      Administrator credentials
 $VPS_PATH/backend/.env    Backend runtime environment
 ```
@@ -428,4 +429,3 @@ sudo nginx -t
 - ใช้ Stripe Secret เฉพาะ Backend
 - เปลี่ยน credentials เมื่อสงสัยว่ารั่วไหล
 - จำกัดสิทธิ์ SSH deploy user และสำรองข้อมูลสม่ำเสมอ
-

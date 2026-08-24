@@ -51,5 +51,12 @@ const pipeVideo = async (media, req, res) => {
     if (result.status === 206) res.set("Content-Range", `bytes ${result.start}-${result.end}/${result.stat.size}`);
     result.stream.on("error", () => { if (!res.headersSent) res.sendStatus(500); else res.destroy(); });
     result.stream.pipe(res);
-  } catch (_error) { if (!res.headersSent) res.sendStatus(404); }
+  } catch (error) {
+    if (res.headersSent) return;
+    if (error.code === "RangeNotSatisfiable") {
+      res.set("Content-Range", `bytes */${media.size || "*"}`);
+      return res.sendStatus(416);
+    }
+    return res.sendStatus(404);
+  }
 };

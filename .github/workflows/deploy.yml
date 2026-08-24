@@ -253,27 +253,60 @@ jobs:
                 "${SUDO[@]}" sed -i '/server[[:space:]]*{/a\    client_max_body_size 2048m;' "$NGINX_SITE"
               fi
 
-              if ! "${SUDO[@]}" grep -q 'location \^~ /minio-console/' "$NGINX_SITE"; then
-                "${SUDO[@]}" sed -i '/location \/ {/i\
-                location ^~ /minio-console/ {\
-                    if ($scheme != https) { return 301 https://$host$request_uri; }\
-                    proxy_set_header Host $http_host;\
-                    proxy_set_header X-Real-IP $remote_addr;\
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\
-                    proxy_set_header X-Forwarded-Proto $scheme;\
-                    proxy_http_version 1.1;\
-                    proxy_set_header Upgrade $http_upgrade;\
-                    proxy_set_header Connection "upgrade";\
-                    proxy_buffering off;\
-                    proxy_request_buffering off;\
-                    proxy_read_timeout 3600s;\
-                    proxy_pass http://127.0.0.1:9001/;\
-                }\
-              ' "$NGINX_SITE"
+              MINIO_NGINX_SITE="/etc/nginx/sites-enabled/minio.amrdiy.com"
+              MINIO_CERT_DIR="/etc/letsencrypt/live/minio.amrdiy.com"
+              [[ -f "$MINIO_CERT_DIR/fullchain.pem" && -f "$MINIO_CERT_DIR/privkey.pem" ]] || {
+                echo "::error title=MinIO TLS configuration::Missing certificate for minio.amrdiy.com. Point its DNS record to this VPS and issue the certificate before deploying."
+                exit 1
+              }
+              MINIO_BACKUP="/var/backups/amrdiy-nginx/minio.amrdiy.com.before-console"
+              if "${SUDO[@]}" test -f "$MINIO_NGINX_SITE"; then
+                "${SUDO[@]}" cp "$MINIO_NGINX_SITE" "$MINIO_BACKUP"
+                MINIO_SITE_EXISTED=true
+              else
+                MINIO_SITE_EXISTED=false
               fi
+              "${SUDO[@]}" tee "$MINIO_NGINX_SITE.tmp" >/dev/null <<'NGINX_CONFIG'
+              server {
+                  listen 80;
+                  listen [::]:80;
+                  server_name minio.amrdiy.com;
+                  return 301 https://$host$request_uri;
+              }
+
+              server {
+                  listen 443 ssl;
+                  listen [::]:443 ssl;
+                  server_name minio.amrdiy.com;
+
+                  ssl_certificate /etc/letsencrypt/live/minio.amrdiy.com/fullchain.pem;
+                  ssl_certificate_key /etc/letsencrypt/live/minio.amrdiy.com/privkey.pem;
+                  client_max_body_size 2048m;
+
+                  location / {
+                      proxy_set_header Host $http_host;
+                      proxy_set_header X-Real-IP $remote_addr;
+                      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                      proxy_set_header X-Forwarded-Proto $scheme;
+                      proxy_http_version 1.1;
+                      proxy_set_header Upgrade $http_upgrade;
+                      proxy_set_header Connection "upgrade";
+                      proxy_buffering off;
+                      proxy_request_buffering off;
+                      proxy_read_timeout 3600s;
+                      proxy_pass http://127.0.0.1:9001;
+                  }
+              }
+              NGINX_CONFIG
+              "${SUDO[@]}" mv "$MINIO_NGINX_SITE.tmp" "$MINIO_NGINX_SITE"
 
               if ! "${SUDO[@]}" nginx -t; then
                 "${SUDO[@]}" cp "$BACKUP" "$NGINX_SITE"
+                if [[ "$MINIO_SITE_EXISTED" == true ]]; then
+                  "${SUDO[@]}" cp "$MINIO_BACKUP" "$MINIO_NGINX_SITE"
+                else
+                  "${SUDO[@]}" rm -f "$MINIO_NGINX_SITE"
+                fi
                 "${SUDO[@]}" nginx -t
                 echo "::error title=Nginx configuration::Invalid static frontend configuration; restored the previous file."
                 exit 1
@@ -410,7 +443,7 @@ jobs:
               if ! grep -q '^MINIO_PORT=' .env; then printf 'MINIO_PORT=9000\n' >> .env; fi
               if ! grep -q '^MINIO_USE_SSL=' .env; then printf 'MINIO_USE_SSL=false\n' >> .env; fi
               if ! grep -q '^MINIO_BUCKET=' .env; then printf 'MINIO_BUCKET=amrdiy-course-media\n' >> .env; fi
-              if ! grep -q '^MINIO_CONSOLE_URL=' .env; then printf 'MINIO_CONSOLE_URL=https://amrdiy.com/minio-console/\n' >> .env; fi
+              if ! grep -q '^MINIO_CONSOLE_URL=' .env; then printf 'MINIO_CONSOLE_URL=https://minio.amrdiy.com\n' >> .env; fi
               if ! grep -q '^MINIO_ACCESS_KEY=' .env || ! grep -q '^MINIO_SECRET_KEY=' .env; then
                 if [[ ! -f "$minio_credentials" ]]; then
                   umask 077
@@ -555,7 +588,7 @@ jobs:
                'https://amrdiy.com/' || { echo '::error title=Public frontend health check::amrdiy.com is not serving the deployed frontend'; exit 1; }; \
              curl --retry 4 --retry-delay 3 --location \
                --fail --silent --show-error --output /dev/null \
-               'https://amrdiy.com/minio-console/' || { echo '::error title=MinIO Console health check::Public MinIO Console is unavailable'; exit 1; }; \
+               'https://minio.amrdiy.com/' || { echo '::error title=MinIO Console health check::Public MinIO Console is unavailable'; exit 1; }; \
              curl --fail --silent --show-error \
                'http://127.0.0.1/api/health' || echo '::warning title=Reverse proxy health check::Nginx does not expose /api/health on port 80; verify that FRONTEND_ENV VITE_API points to the backend URL'"
 
