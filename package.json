@@ -2,7 +2,7 @@
   "name": "amrdiy",
   "version": "1.0.0",
   "private": true,
-  "description": "AMR DIY e-commerce monorepo",
+  "description": "AMR DIY Robotics Electronics & IoT Store",
   "engines": {
     "node": ">=24.18.0 <25",
     "npm": ">=11"
