@@ -187,15 +187,20 @@ a {
     display: flex;
     align-items: center;
     gap: 4px;
+    min-width: 0;
     margin-left: auto;
+    overflow: hidden;
 }
 
 .mobile-quick-menu a {
     padding: 7px 8px;
+    overflow: hidden;
+    min-width: 0;
     color: var(--amr-navy-900);
     font-size: 13px;
     font-weight: 600;
     line-height: 1;
+    text-overflow: ellipsis;
     white-space: nowrap;
     border-radius: 8px;
 }
@@ -210,6 +215,7 @@ a {
     display: flex;
     align-items: center;
     gap: 4px;
+    flex: 1 1 auto;
     min-width: 0;
     max-width: 420px;
     overflow: hidden;
@@ -246,6 +252,7 @@ a {
 .mobile-header-actions {
     flex: 0 0 auto;
     margin-left: auto;
+    white-space: nowrap;
 }
 
 .admin-page-grid {
@@ -1018,7 +1025,7 @@ a {
 @media (max-width: 1199px) {
     .site-header {
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-start;
     }
 }
 
