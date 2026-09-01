@@ -270,21 +270,22 @@ jobs:
                 }
                 "${SUDO[@]}" install -d -m 755 /var/www/html
 
-                "${SUDO[@]}" tee "$MINIO_NGINX_SITE" >/dev/null <<'ACME_NGINX_CONFIG'
-              server {
-                  listen 80;
-                  listen [::]:80;
-                  server_name minio.amrdiy.com;
-
-                  location ^~ /.well-known/acme-challenge/ {
-                      root /var/www/html;
-                  }
-
-                  location / {
-                      return 404;
-                  }
-              }
-              ACME_NGINX_CONFIG
+                {
+                  printf '%s\n' \
+                    'server {' \
+                    '    listen 80;' \
+                    '    listen [::]:80;' \
+                    '    server_name minio.amrdiy.com;' \
+                    '' \
+                    '    location ^~ /.well-known/acme-challenge/ {' \
+                    '        root /var/www/html;' \
+                    '    }' \
+                    '' \
+                    '    location / {' \
+                    '        return 404;' \
+                    '    }' \
+                    '}'
+                } | "${SUDO[@]}" tee "$MINIO_NGINX_SITE" >/dev/null
                 if ! "${SUDO[@]}" nginx -t || ! "${SUDO[@]}" systemctl reload nginx; then
                   [[ "$MINIO_SITE_EXISTED" == true ]] && "${SUDO[@]}" cp "$MINIO_BACKUP" "$MINIO_NGINX_SITE" || "${SUDO[@]}" rm -f "$MINIO_NGINX_SITE"
                   "${SUDO[@]}" nginx -t && "${SUDO[@]}" systemctl reload nginx || true

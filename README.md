@@ -309,6 +309,8 @@ Workflow จัดการ Node.js `24.18.0`, npm dependencies, MinIO binary �
 /etc/nginx/sites-enabled/amrdiy.com
 ```
 
+เมื่อ deploy ครั้งแรก workflow จะติดตั้ง `certbot` หากยังไม่มี เปิด ACME challenge ชั่วคราว และขอ/ต่ออายุ certificate ของ `minio.amrdiy.com` ให้อัตโนมัติ DNS หรือ Cloudflare origin ของ `minio.amrdiy.com` ต้องส่ง HTTP port 80 มายัง VPS ได้ มิฉะนั้น Let's Encrypt จะไม่สามารถตรวจสอบโดเมนได้
+
 ## 15. CI/CD Flow
 
 เมื่อ push เข้า `main`:
