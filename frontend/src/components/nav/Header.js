@@ -122,40 +122,37 @@ const Header = () => {
                     </>
                 ) : (
                     <>
-                        {mobileSearchOpen ? (
-                            <div className="mobile-search-expanded">
-                                <Search autoFocus />
-                            </div>
-                        ) : (
-                            <>
-                                <Link to="/" className="brand">
-                                    <img src="/amrdiy-logo.svg" alt="AMR DIY" className="brand-logo" />
+                        <div className={`mobile-nav-area${mobileSearchOpen ? ' is-collapsed' : ''}`}>
+                            <Link to="/" className="brand">
+                                <img src="/amrdiy-logo.svg" alt="AMR DIY" className="brand-logo" />
+                            </Link>
+                            <nav className="mobile-quick-menu" aria-label="เมนูหลักบนมือถือ">
+                                <Link
+                                    to="/shop"
+                                    className={location.pathname === '/shop' ? 'is-active' : undefined}
+                                    aria-current={location.pathname === '/shop' ? 'page' : undefined}
+                                >
+                                    สินค้า
                                 </Link>
-                                <nav className="mobile-quick-menu" aria-label="เมนูหลักบนมือถือ">
-                                    <Link
-                                        to="/shop"
-                                        className={location.pathname === '/shop' ? 'is-active' : undefined}
-                                        aria-current={location.pathname === '/shop' ? 'page' : undefined}
-                                    >
-                                        สินค้า
-                                    </Link>
-                                    <Link
-                                        to="/courses"
-                                        className={location.pathname.startsWith('/courses') ? 'is-active' : undefined}
-                                        aria-current={location.pathname.startsWith('/courses') ? 'page' : undefined}
-                                    >
-                                        คอร์ส
-                                    </Link>
-                                    <Link
-                                        to="/blog"
-                                        className={location.pathname.startsWith('/blog') ? 'is-active' : undefined}
-                                        aria-current={location.pathname.startsWith('/blog') ? 'page' : undefined}
-                                    >
-                                        บทความ
-                                    </Link>
-                                </nav>
-                            </>
-                        )}
+                                <Link
+                                    to="/courses"
+                                    className={location.pathname.startsWith('/courses') ? 'is-active' : undefined}
+                                    aria-current={location.pathname.startsWith('/courses') ? 'page' : undefined}
+                                >
+                                    คอร์ส
+                                </Link>
+                                <Link
+                                    to="/blog"
+                                    className={location.pathname.startsWith('/blog') ? 'is-active' : undefined}
+                                    aria-current={location.pathname.startsWith('/blog') ? 'page' : undefined}
+                                >
+                                    บทความ
+                                </Link>
+                            </nav>
+                        </div>
+                        <div className={`mobile-search-slide${mobileSearchOpen ? ' is-open' : ''}`}>
+                            <Search autoFocus={mobileSearchOpen} />
+                        </div>
                         <Space>
                             <Badge count={cart.length} size="small">
                                 <Button type="text" icon={<ShoppingCartOutlined />} onClick={() => navigate('/cart')} />

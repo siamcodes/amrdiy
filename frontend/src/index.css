@@ -206,13 +206,40 @@ a {
     background: #eaf3ff;
 }
 
-.mobile-search-expanded {
-    flex: 1;
+.mobile-nav-area {
+    display: flex;
+    align-items: center;
+    gap: 4px;
     min-width: 0;
+    max-width: 420px;
+    overflow: hidden;
+    opacity: 1;
+    transition: max-width .25s ease, opacity .2s ease;
+}
+
+.mobile-nav-area.is-collapsed {
+    max-width: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.mobile-search-slide {
+    display: flex;
+    align-items: center;
+    flex: 0 1 0;
+    max-width: 0;
+    min-width: 0;
+    overflow: hidden;
+    transition: max-width .25s ease, flex-basis .25s ease;
+}
+
+.mobile-search-slide.is-open {
+    flex: 1 1 auto;
+    max-width: 100%;
     margin-right: 8px;
 }
 
-.mobile-search-expanded .ant-input-search {
+.mobile-search-slide .ant-input-search {
     width: 100%;
 }
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { Input } from "antd";
@@ -8,6 +8,7 @@ const Search = ({ autoFocus = false }) => {
     const location = useLocation();
     const { search } = useSelector((state) => ({ ...state }));
     const navigate = useNavigate();
+    const inputRef = useRef(null);
     const isBlogPage = location.pathname.startsWith("/blog");
     const isCoursePage = location.pathname.startsWith("/courses");
     const isShopPage = location.pathname === "/shop";
@@ -25,6 +26,11 @@ const Search = ({ autoFocus = false }) => {
             setValue(search.text ?? "");
         }
     }, [isBlogPage, isCatalogPage, isCoursePage, isShopPage, location.search, search.text]);
+
+    // re-focus every time the collapsed mobile search bar is expanded again
+    useEffect(() => {
+        if (autoFocus) inputRef.current?.focus();
+    }, [autoFocus]);
 
     const handleChange = (e) => {
         const nextValue = e.target.value;
@@ -57,8 +63,8 @@ const Search = ({ autoFocus = false }) => {
 
     return (
         <Input.Search
+            ref={inputRef}
             allowClear
-            autoFocus={autoFocus}
             value={value}
             onChange={handleChange}
             onSearch={handleSubmit}
