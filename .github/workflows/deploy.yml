@@ -246,16 +246,60 @@ jobs:
 
               MINIO_NGINX_SITE="/etc/nginx/sites-enabled/minio.amrdiy.com"
               MINIO_CERT_DIR="/etc/letsencrypt/live/minio.amrdiy.com"
-              [[ -f "$MINIO_CERT_DIR/fullchain.pem" && -f "$MINIO_CERT_DIR/privkey.pem" ]] || {
-                echo "::error title=MinIO TLS configuration::Missing certificate for minio.amrdiy.com. Point its DNS record to this VPS and issue the certificate before deploying."
-                exit 1
-              }
               MINIO_BACKUP="/var/backups/amrdiy-nginx/minio.amrdiy.com.before-console"
               if "${SUDO[@]}" test -f "$MINIO_NGINX_SITE"; then
                 "${SUDO[@]}" cp "$MINIO_NGINX_SITE" "$MINIO_BACKUP"
                 MINIO_SITE_EXISTED=true
               else
                 MINIO_SITE_EXISTED=false
+              fi
+
+              # Bootstrap TLS on the first deployment.  The temporary HTTP
+              # virtual host exposes only the ACME challenge path; it is
+              # replaced by the HTTPS reverse proxy below once the certificate
+              # has been issued.
+              if [[ ! -f "$MINIO_CERT_DIR/fullchain.pem" || ! -f "$MINIO_CERT_DIR/privkey.pem" ]]; then
+                if ! command -v certbot >/dev/null; then
+                  echo "Installing certbot for the first MinIO TLS setup."
+                  "${SUDO[@]}" apt-get update
+                  "${SUDO[@]}" apt-get install -y certbot
+                fi
+                command -v certbot >/dev/null || {
+                  echo "::error title=MinIO TLS configuration::Could not install certbot on the VPS."
+                  exit 1
+                }
+                "${SUDO[@]}" install -d -m 755 /var/www/html
+
+                "${SUDO[@]}" tee "$MINIO_NGINX_SITE" >/dev/null <<'ACME_NGINX_CONFIG'
+              server {
+                  listen 80;
+                  listen [::]:80;
+                  server_name minio.amrdiy.com;
+
+                  location ^~ /.well-known/acme-challenge/ {
+                      root /var/www/html;
+                  }
+
+                  location / {
+                      return 404;
+                  }
+              }
+              ACME_NGINX_CONFIG
+                if ! "${SUDO[@]}" nginx -t || ! "${SUDO[@]}" systemctl reload nginx; then
+                  [[ "$MINIO_SITE_EXISTED" == true ]] && "${SUDO[@]}" cp "$MINIO_BACKUP" "$MINIO_NGINX_SITE" || "${SUDO[@]}" rm -f "$MINIO_NGINX_SITE"
+                  "${SUDO[@]}" nginx -t && "${SUDO[@]}" systemctl reload nginx || true
+                  echo "::error title=MinIO TLS configuration::Could not enable the temporary ACME challenge site."
+                  exit 1
+                fi
+
+                if ! "${SUDO[@]}" certbot certonly --webroot -w /var/www/html \
+                  --non-interactive --agree-tos --register-unsafely-without-email \
+                  -d minio.amrdiy.com; then
+                  [[ "$MINIO_SITE_EXISTED" == true ]] && "${SUDO[@]}" cp "$MINIO_BACKUP" "$MINIO_NGINX_SITE" || "${SUDO[@]}" rm -f "$MINIO_NGINX_SITE"
+                  "${SUDO[@]}" nginx -t && "${SUDO[@]}" systemctl reload nginx || true
+                  echo "::error title=MinIO TLS configuration::Let’s Encrypt could not validate minio.amrdiy.com. Ensure its DNS/origin routes HTTP port 80 to this VPS (and disable an incompatible Cloudflare proxy setting), then rerun."
+                  exit 1
+                fi
               fi
               "${SUDO[@]}" tee "$MINIO_NGINX_SITE.tmp" >/dev/null <<'NGINX_CONFIG'
               server {
