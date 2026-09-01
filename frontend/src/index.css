@@ -496,7 +496,6 @@ a {
     white-space: pre;
     word-wrap: normal;
     -webkit-overflow-scrolling: touch;
-    padding-top: 42px;
 }
 
 .code-copy-btn {
@@ -515,7 +514,23 @@ a {
     border: 1px solid #d0d5dd;
     border-radius: 6px;
     cursor: pointer;
-    transition: background .15s ease, color .15s ease, border-color .15s ease;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .15s ease, background .15s ease, color .15s ease, border-color .15s ease;
+}
+
+.code-block:hover .code-copy-btn,
+.code-block:focus-within .code-copy-btn,
+.code-copy-btn:focus-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+@media (hover: none) {
+    .code-copy-btn {
+        opacity: 1;
+        pointer-events: auto;
+    }
 }
 
 .code-copy-btn:hover {
@@ -526,7 +541,6 @@ a {
 @media (max-width: 767px) {
     .code-block pre {
         font-size: 13px;
-        padding: 40px 10px 10px;
     }
 
     .code-copy-btn {
