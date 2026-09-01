@@ -15,7 +15,16 @@ app.use(morgan("dev"));
 app.use(express.json({ limit: "8mb" }));
 app.set("trust proxy", true);
 app.use(cors({
-    origin: env.clientUrl,
+    // Return the requesting origin explicitly. This is required when Axios
+    // sends cookies (`withCredentials: true`); browsers reject `*` in that
+    // case even if the request itself is otherwise authorized.
+    origin(origin, callback) {
+        if (!origin || origin === env.clientOrigin) {
+            callback(null, true);
+            return;
+        }
+        callback(null, false);
+    },
     credentials: true,
 }));
 

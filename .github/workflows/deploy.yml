@@ -381,7 +381,10 @@ jobs:
         run: |
           set -euo pipefail
           {
-            printf '%s\n' "$BACKEND_ENV"
+            # A wildcard is invalid with credentialed CORS requests. Keep a
+            # legacy secret from breaking checkout while requiring the public
+            # frontend origin in the runtime environment.
+            printf '%s\n' "$BACKEND_ENV" | sed 's#^CLIENT_URL=\*$#CLIENT_URL=https://amrdiy.com#'
             [[ -z "$AUTH_FACEBOOK_CONFIG_ID" ]] || printf 'AUTH_FACEBOOK_CONFIG_ID=%s\n' "$AUTH_FACEBOOK_CONFIG_ID"
             [[ -z "$AUTH_LINE_ID" ]] || printf 'AUTH_LINE_ID=%s\n' "$AUTH_LINE_ID"
             [[ -z "$AUTH_LINE_SECRET" ]] || printf 'AUTH_LINE_SECRET=%s\n' "$AUTH_LINE_SECRET"
