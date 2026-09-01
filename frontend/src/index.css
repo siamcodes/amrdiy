@@ -505,10 +505,10 @@ a {
     z-index: 1;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    font-size: 12px;
-    line-height: 1.4;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
     color: #344054;
     background: #ffffff;
     border: 1px solid #d0d5dd;
@@ -546,8 +546,9 @@ a {
     .code-copy-btn {
         top: 6px;
         right: 6px;
-        padding: 3px 8px;
-        font-size: 11px;
+        width: 26px;
+        height: 26px;
+        font-size: 12px;
     }
 }
 
