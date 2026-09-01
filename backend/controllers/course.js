@@ -155,6 +155,11 @@ exports.updateProgress = async (req, res) => {
 };
 
 exports.adminList = async (_req, res) => res.json(await Course.find().populate("instructor", "name email").sort({ createdAt: -1 }).lean());
+exports.adminRead = async (req, res) => {
+  const course = await Course.findById(req.params.id).populate("instructor", "name email").lean();
+  if (!course) return res.status(404).json({ message: "ไม่พบคอร์ส" });
+  res.json(course);
+};
 exports.create = async (req, res) => {
   try {
     const payload = normalize(req.body);

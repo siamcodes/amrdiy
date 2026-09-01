@@ -12,6 +12,7 @@ export const createCoursePaymentIntent = (id) => axios.post(`${base}/courses/${i
 export const confirmCoursePayment = (id, paymentIntentId) => axios.post(`${base}/courses/${id}/confirm-payment`, { paymentIntentId });
 export const completeCourseLesson = (id, lessonId) => axios.put(`${base}/courses/${id}/progress`, { lessonId });
 export const getAdminCourses = () => axios.get(`${base}/admin/courses`);
+export const getAdminCourse = (id) => axios.get(`${base}/admin/courses/${id}`);
 export const createCourse = (payload) => axios.post(`${base}/admin/courses`, payload);
 export const updateCourse = (id, payload) => axios.put(`${base}/admin/courses/${id}`, payload);
 export const deleteCourse = (id) => axios.delete(`${base}/admin/courses/${id}`);

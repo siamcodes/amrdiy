@@ -30,6 +30,8 @@ import CourseDetail from './pages/course/CourseDetail';
 import CourseLearn from './pages/course/CourseLearn';
 import MyCourses from './pages/user/MyCourses';
 import AdminCourses from './pages/admin/AdminCourses';
+import CourseEdit from './pages/admin/CourseEdit';
+import CourseLessonEdit from './pages/admin/CourseLessonEdit';
 import CatalogManagement from './pages/admin/CatalogManagement';
 import CategoryCreate from './pages/admin/category/CategoryCreate';
 import CategoryUpdate from './pages/admin/category/CategoryUpdate';
@@ -157,6 +159,9 @@ const App = () => {
         <Route path="/admin/shipping" element={<AdminRoute component={ShippingManagement} />} />
         <Route path="/admin/blogs" element={<AdminRoute component={AdminBlogs} />} />
         <Route path="/admin/courses" element={<AdminRoute component={AdminCourses} />} />
+        <Route path="/admin/course" element={<AdminRoute component={CourseEdit} />} />
+        <Route path="/admin/course/:id" element={<AdminRoute component={CourseEdit} />} />
+        <Route path="/admin/course/:id/lesson/:sectionIndex/:lessonIndex" element={<AdminRoute component={CourseLessonEdit} />} />
         <Route path="/admin/catalog" element={<AdminRoute component={CatalogManagement} />} />
         <Route path="/admin/category" element={<AdminRoute component={CategoryCreate} />} />
         <Route path="/admin/category/:slug" element={<AdminRoute component={CategoryUpdate} />} />

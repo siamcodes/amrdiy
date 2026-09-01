@@ -16,6 +16,7 @@ router.post("/courses/:id/payment-intent", authCheck, course.createPaymentIntent
 router.post("/courses/:id/confirm-payment", authCheck, course.confirmPayment);
 router.put("/courses/:id/progress", authCheck, course.updateProgress);
 router.get("/admin/courses", authCheck, adminCheck, course.adminList);
+router.get("/admin/courses/:id", authCheck, adminCheck, course.adminRead);
 router.post("/admin/course-media", authCheck, adminCheck, videoUpload.single("video"), courseMedia.upload);
 router.post("/admin/courses", authCheck, adminCheck, course.create);
 router.put("/admin/courses/:id", authCheck, adminCheck, course.update);
