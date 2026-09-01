@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Button, Card, Modal, Space, Typography } from "antd";
 import { EyeOutlined, OrderedListOutlined, PlusOutlined, SafetyOutlined } from "@ant-design/icons";
-import parse from "html-react-parser";
 import RichTextEditor from "./RichTextEditor";
+import { renderRichContent } from "../../helpers/richContent";
 
 const { Paragraph, Text } = Typography;
 const templates = {
@@ -40,7 +40,7 @@ const UsageExampleEditor = ({ value = "", onChange, minHeight = 300 }) => {
         placeholder="อธิบายอุปกรณ์ ขั้นตอนการต่อ วิธีใช้งาน ผลลัพธ์ และข้อควรระวัง..." />
     </div>
     <Modal open={preview} onCancel={() => setPreview(false)} footer={null} width={900} title="ตัวอย่างที่ลูกค้าจะเห็น">
-      <div className="blog-content" style={{ margin: 0 }}>{value ? parse(value) : <Text type="secondary">ยังไม่มีเนื้อหา</Text>}</div>
+      <div className="blog-content" style={{ margin: 0 }}>{value ? renderRichContent(value) : <Text type="secondary">ยังไม่มีเนื้อหา</Text>}</div>
     </Modal>
   </>;
 };

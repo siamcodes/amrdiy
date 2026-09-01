@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Breadcrumb, Button, Card, Col, Empty, Result, Row, Skeleton, Space, Tag, Typography, message } from "antd";
 import { CalendarOutlined, EyeOutlined, HomeOutlined, LockOutlined, LoginOutlined } from "@ant-design/icons";
 import { Link, useLocation, useParams } from "react-router-dom";
-import parse from "html-react-parser";
 import { getBlog } from "../../functions/blog";
 import ProductCard from "../../components/cards/ProductCard";
+import { renderRichContent } from "../../helpers/richContent";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -42,22 +42,20 @@ const YoutubeEmbed = ({ src, title }) => (
   </span>
 );
 
-const renderBlogContent = (html, title) => parse(html || "", {
-  replace: (node) => {
-    if (node.type !== "tag") return undefined;
+const renderBlogContent = (html, title) => renderRichContent(html, (node) => {
+  if (node.type !== "tag") return undefined;
 
-    if (node.name === "iframe") {
-      const src = youtubeSrc(node.attribs?.src);
-      return src ? <YoutubeEmbed src={src} title={title} /> : <></>;
-    }
+  if (node.name === "iframe") {
+    const src = youtubeSrc(node.attribs?.src);
+    return src ? <YoutubeEmbed src={src} title={title} /> : <></>;
+  }
 
-    if (node.name === "a") {
-      const src = youtubeSrc(node.attribs?.href);
-      if (src) return <YoutubeEmbed src={src} title={title} />;
-    }
+  if (node.name === "a") {
+    const src = youtubeSrc(node.attribs?.href);
+    if (src) return <YoutubeEmbed src={src} title={title} />;
+  }
 
-    return undefined;
-  },
+  return undefined;
 });
 
 const BlogDetail = () => {

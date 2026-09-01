@@ -438,8 +438,18 @@ a {
 .blog-content {
     max-width: 960px;
     margin: 24px auto;
-    font-size: 17px;
-    line-height: 1.85;
+    font-size: 16px;
+    line-height: 1.65;
+}
+
+.blog-content p {
+    margin: 0 0 12px;
+}
+
+.blog-content ul,
+.blog-content ol {
+    margin: 0 0 12px;
+    padding-left: 22px;
 }
 
 .blog-content img {
@@ -469,7 +479,62 @@ a {
 
 .blog-content h2,
 .blog-content h3 {
-    margin-top: 1.8em;
+    margin-top: 1.4em;
+    margin-bottom: 0.6em;
+}
+
+.code-block {
+    position: relative;
+    margin: 18px 0;
+    max-width: 100%;
+}
+
+.code-block pre {
+    margin: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: pre;
+    word-wrap: normal;
+    -webkit-overflow-scrolling: touch;
+    padding-top: 42px;
+}
+
+.code-copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #344054;
+    background: #ffffff;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+
+.code-copy-btn:hover {
+    color: #1677ff;
+    border-color: #1677ff;
+}
+
+@media (max-width: 767px) {
+    .code-block pre {
+        font-size: 13px;
+        padding: 40px 10px 10px;
+    }
+
+    .code-copy-btn {
+        top: 6px;
+        right: 6px;
+        padding: 3px 8px;
+        font-size: 11px;
+    }
 }
 
 .blog-products {
