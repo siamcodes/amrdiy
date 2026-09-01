@@ -4,6 +4,7 @@ import Resizer from "react-image-file-resizer";
 import { message } from "antd";
 import { useSelector } from "react-redux";
 import { uploadUserImage } from "../../functions/user";
+import { QuillFormats, QuillToolbar } from "../../helpers/quill";
 import "react-quill-new/dist/quill.snow.css";
 
 const youtubeEmbedUrl = (input) => {
@@ -38,19 +39,14 @@ const resizeEditorImage = (file) => new Promise((resolve) => {
     );
 });
 
-const RichTextEditor = ({ value = "", onChange, placeholder }) => {
+const RichTextEditor = ({ value = "", onChange, placeholder, readOnly = false }) => {
     const quillRef = useRef(null);
     const user = useSelector((state) => state.user);
     const modules = useMemo(() => ({
         table: true,
         toolbar: {
             container: [
-                [{ header: [1, 2, 3, false] }],
-                ["bold", "italic", "underline", "strike"],
-                [{ list: "ordered" }, { list: "bullet" }],
-                ["blockquote", "link", "image", "video", "table"],
-                [{ color: [] }, { background: [] }],
-                ["clean"],
+                ...QuillToolbar,
             ],
             handlers: {
                 image: () => {
@@ -145,7 +141,10 @@ const RichTextEditor = ({ value = "", onChange, placeholder }) => {
                 value={value || ""}
                 onChange={onChange}
                 modules={modules}
+                formats={QuillFormats}
                 placeholder={placeholder}
+                readOnly={readOnly}
+                bounds=".rich-text-editor"
             />
         </div>
     );
