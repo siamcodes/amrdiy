@@ -153,7 +153,7 @@ const Header = () => {
                         <div className={`mobile-search-slide${mobileSearchOpen ? ' is-open' : ''}`}>
                             <Search autoFocus={mobileSearchOpen} />
                         </div>
-                        <Space>
+                        <Space className="mobile-header-actions">
                             <Badge count={cart.length} size="small">
                                 <Button type="text" icon={<ShoppingCartOutlined />} onClick={() => navigate('/cart')} />
                             </Badge>

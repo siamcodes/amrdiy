@@ -243,6 +243,11 @@ a {
     width: 100%;
 }
 
+.mobile-header-actions {
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+
 .admin-page-grid {
     display: grid;
     grid-template-columns: 220px minmax(0, 1fr);
