@@ -206,6 +206,16 @@ a {
     background: #eaf3ff;
 }
 
+.mobile-search-expanded {
+    flex: 1;
+    min-width: 0;
+    margin-right: 8px;
+}
+
+.mobile-search-expanded .ant-input-search {
+    width: 100%;
+}
+
 .admin-page-grid {
     display: grid;
     grid-template-columns: 220px minmax(0, 1fr);

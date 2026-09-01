@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { Input } from "antd";
 
-const Search = () => {
+const Search = ({ autoFocus = false }) => {
     const dispatch = useDispatch();
     const location = useLocation();
     const { search } = useSelector((state) => ({ ...state }));
@@ -58,6 +58,7 @@ const Search = () => {
     return (
         <Input.Search
             allowClear
+            autoFocus={autoFocus}
             value={value}
             onChange={handleChange}
             onSearch={handleSubmit}
