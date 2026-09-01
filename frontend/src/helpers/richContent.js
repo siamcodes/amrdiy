@@ -22,7 +22,7 @@ const CodeBlock = ({ node }) => {
   };
   return (
     <div className="code-block">
-      <button type="button" className="code-copy-btn" onClick={copy} title={copied ? "คัดลอกแล้ว" : "คัดลอกโค้ด"} aria-label="คัดลอกโค้ด">
+      <button type="button" className="code-copy-btn" onClick={copy} title={copied ? "คัดลอกแล้ว" : "คัดลอก"} aria-label="คัดลอก">
         {copied ? <CheckOutlined /> : <CopyOutlined />}
       </button>
       <pre>{domToReact(node.children)}</pre>
