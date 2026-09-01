@@ -8,7 +8,7 @@ const required = (name) => {
   return value;
 };
 
-const port = Number(process.env.PORT || 8009);
+const port = Number(process.env.PORT || 8000);
 
 if (!Number.isInteger(port) || port < 1 || port > 65535) {
   throw new Error("PORT must be an integer between 1 and 65535");
