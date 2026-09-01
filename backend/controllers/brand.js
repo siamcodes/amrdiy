@@ -22,7 +22,6 @@ exports.create = async (req, res) => {
 
         res.json(await new Brand({ name, slug: req.body.slug }).save());
     } catch (err) {
-        // console.log(err);
         res.status(400).send("Create brand failed");
     }
 };

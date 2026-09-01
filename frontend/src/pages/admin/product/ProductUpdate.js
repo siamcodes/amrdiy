@@ -85,7 +85,6 @@ const ProductUpdate = ({ match, history }) => {
         setProductLoaded(false);
         getProduct(slug).then((p) => {
             if (!p.data) throw new Error("ไม่พบสินค้า");
-            // console.log("single product", p);
             // 1 load single proudct
             const product = p.data;
             const categoryId = product.category?._id || product.category || "";
@@ -144,13 +143,11 @@ const ProductUpdate = ({ match, history }) => {
 
     const loadCategories = () =>
         getCategories().then((c) => {
-            console.log("GET CATEGORIES IN UPDATE PRODUCT", c.data);
             setCategories(c.data);
         });
 
     const loadBrands = () =>
         getBrands().then((b) => {
-            console.log("GET BRANDS IN UPDATE PRODUCT", b.data);
             setBrandOptions(b.data);
         });
 
@@ -181,7 +178,6 @@ const ProductUpdate = ({ match, history }) => {
                 history.push(`/admin/product/${res.data.slug}`);
             })
             .catch((err) => {
-                console.log(err);
                 setLoading(false);
                 toast.error(err.response?.data?.err || "บันทึกสินค้าไม่สำเร็จ");
             });
@@ -189,7 +185,6 @@ const ProductUpdate = ({ match, history }) => {
 
     const handleChange = (e) => {
         setValues({ ...values, [e.target.name]: e.target.value });
-        // console.log(e.target.name, " ----- ", e.target.value);
     };
 
     const handleCategoryChange = (e) => {
@@ -221,7 +216,6 @@ const ProductUpdate = ({ match, history }) => {
             setSelectedBrand(e.target.value);
     
             getBrandGenerations(e.target.value).then((res) => {
-                console.log("GENERATION OPTIONS ON BRAND CLICK", res);
                 setGenerationOptions(res.data);
             });
     
@@ -242,7 +236,6 @@ const ProductUpdate = ({ match, history }) => {
     const [content, setContent] = useState(contentFromLS());
 
     const saveContentToDB = () => {
-        //console.log(slug, content);
         setLoading(true);
         saveContent(slug, content, user.token).then((res) => {
             if (res.data.ok) {
@@ -254,7 +247,6 @@ const ProductUpdate = ({ match, history }) => {
           .finally(() => setLoading(false));
     };
     const handleContent = (e) => {
-        //console.log(e);
         setContent(e);
         if (typeof window !== 'undefined') {
             localStorage.setItem(`product-content:${slug}`, JSON.stringify(e));
@@ -274,7 +266,6 @@ const ProductUpdate = ({ match, history }) => {
     const [detail, setDetail] = useState(detailFromLS());
 
     const saveDetailToDB = () => {
-        //console.log(slug, detail);
         setLoading(true);
         saveDetail(slug, detail, user.token).then((res) => {
             if (res.data.ok) {

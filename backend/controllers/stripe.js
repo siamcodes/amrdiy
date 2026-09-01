@@ -8,7 +8,6 @@ const { getShippingQuote } = require("../services/shipping");
 
 exports.createPaymentIntent = async (req, res) => {
   const stripe = new Stripe(required("STRIPE_SECRET"));
-  // console.log(req.body);
   const { couponApplied, shippingMethodId } = req.body;
 
   // later apply coupon
@@ -22,8 +21,6 @@ exports.createPaymentIntent = async (req, res) => {
     orderedBy: user._id,
   }).populate("products.product", "shippingProfile").exec();
   const { cartTotal, totalAfterDiscount } = userCart;
-
-  // console.log("CART TOTAL", cartTotal, "AFTER DIS%", totalAfterDiscount);
 
   let finalAmount = 0;
   

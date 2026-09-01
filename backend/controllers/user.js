@@ -13,7 +13,6 @@ const { getShippingQuote } = require("../services/shipping");
 const { destroyAsset } = require("../services/cloudinary");
 
 exports.userCart = async (req, res) => {
-  // console.log(req.body); // {cart: []}
   const { cart } = req.body;
 
   let products = [];
@@ -25,7 +24,6 @@ exports.userCart = async (req, res) => {
 
   if (cartExistByThisUser) {
     await cartExistByThisUser.deleteOne();
-    console.log("removed old cart");
   }
 
   for (let i = 0; i < cart.length; i++) {
@@ -46,14 +44,10 @@ exports.userCart = async (req, res) => {
     products.push(object);
   }
 
-  // console.log('products', products)
-
   let cartTotal = 0;
   for (let i = 0; i < products.length; i++) {
     cartTotal = cartTotal + products[i].price * products[i].count;
   }
-
-  // console.log("cartTotal", cartTotal);
 
   let newCart = await new Cart({
     products,
@@ -61,7 +55,6 @@ exports.userCart = async (req, res) => {
     orderedBy: user._id,
   }).save();
 
-  console.log("new cart---->", newCart);
   res.json({ ok: true });
 };
 
@@ -143,7 +136,6 @@ exports.getUserCart = async (req, res) => {
 };
 
 exports.emptyCart = async (req, res) => {
-  console.log("empty cart");
   const user = await User.findOne({ email: req.user.email }).exec();
 
   const cart = await Cart.findOneAndDelete({ orderedBy: user._id }).exec();
@@ -160,7 +152,6 @@ exports.saveAddress = async (req, res) => {
 
 exports.applyCouponToUserCart = async (req, res) => {
   const { coupon } = req.body;
-  console.log("COUPON", coupon);
 
   const validCoupon = await Coupon.findOne({ name: coupon }).exec();
   if (validCoupon === null) {
@@ -168,7 +159,6 @@ exports.applyCouponToUserCart = async (req, res) => {
       err: "Invalid coupon",
     });
   }
-  console.log("VALID COUPON", validCoupon);
 
   const user = await User.findOne({ email: req.user.email }).exec();
 
@@ -176,15 +166,11 @@ exports.applyCouponToUserCart = async (req, res) => {
     .populate("products.product", "_id title price")
     .exec();
 
-  console.log("cartTotal", cartTotal, "discount%", validCoupon.discount);
-
   // calculate the total after discount
   let totalAfterDiscount = (
     cartTotal -
     (cartTotal * validCoupon.discount) / 100
   ).toFixed(2); // 99.99
-
-  console.log("------> ", totalAfterDiscount);
 
   Cart.findOneAndUpdate(
     { orderedBy: user._id },
@@ -196,8 +182,6 @@ exports.applyCouponToUserCart = async (req, res) => {
 };
 
 exports.createOrder = async (req, res) => {
-  // console.log(req.body);
-  // return;
   const stripeResponse = req.body.stripeResponse || {};
   const submittedIntent = stripeResponse.paymentIntent;
   if (!submittedIntent?.id) {
@@ -263,9 +247,6 @@ exports.createOrder = async (req, res) => {
   });
 
   let updated = await Product.bulkWrite(bulkOption, {});
-  console.log("PRODUCT QUANTITY-- AND SOLD++", updated);
-
-  console.log("NEW ORDER SAVED", newOrder);
   res.json({ ok: true });
 };
 
@@ -437,16 +418,11 @@ exports.createCashOrder = async (req, res) => {
   });
 
   let updated = await Product.bulkWrite(bulkOption, {});
-  console.log("PRODUCT QUANTITY-- AND SOLD++", updated);
-
-  console.log("NEW ORDER SAVED", newOrder);
   res.json({ ok: true });
 };
 
 
 exports.saveContact = async (req, res) => {
-   console.log('Hi ',req.body);
-  // return;
   const contacts = await User.findOneAndUpdate(
     { email: req.user.email },
     { title: req.body.title },
@@ -454,12 +430,4 @@ exports.saveContact = async (req, res) => {
 
   ).exec();
   res.json({ ok: true });
-
- /*  try {
-    const { name, expiry, discount } = req.body.coupon;
-    res.json(await new Coupon({ name, expiry, discount }).save());
-  } catch (err) {
-    console.log(err);
-  } */
-
 };

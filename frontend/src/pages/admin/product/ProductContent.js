@@ -36,9 +36,6 @@ const ProductContent = ({ match, history }) => {
     const loadProduct = () => {
         setLoading(true);
         getProduct(slug).then((p) => {
-            // console.log("single product", p);
-            // 1 load single proudct
-            console.log('Product ', p.data.title)
             setTitle(p.data.title);
             const draft = localStorage.getItem(`product-content:${slug}`);
             setContent(draft ? JSON.parse(draft) : (p.data.content || ""));
@@ -62,7 +59,6 @@ const ProductContent = ({ match, history }) => {
     };
 
     const handleContent = (e) => {
-        console.log(e);
         setContent(e);
         if (typeof window !== 'undefined') {
             localStorage.setItem(`product-content:${slug}`, JSON.stringify(e));

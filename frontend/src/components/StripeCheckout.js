@@ -28,7 +28,6 @@ const StripeCheckout = ({ history }) => {
     useEffect(() => {
         const checkoutContext = JSON.parse(sessionStorage.getItem("checkoutContext") || "{}");
         createPaymentIntent(user.token, coupon, checkoutContext.shippingMethodId).then((res) => {
-            console.log("create payment intent", res.data);
             setClientSecret(res.data.clientSecret);
             // additional response received on successful payment
             setCartTotal(res.data.cartTotal);
@@ -77,7 +76,6 @@ const StripeCheckout = ({ history }) => {
                 }
             });
             // empty user cart from redux store and local storage
-            console.log(JSON.stringify(payload, null, 4));
             setError(null);
             setProcessing(false);
             setSucceeded(true);

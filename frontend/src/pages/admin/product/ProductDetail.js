@@ -38,9 +38,6 @@ const ProductDetail = ({ match, history }) => {
     const loadProduct = () => {
         setLoading(true);
         getProduct(slug).then((p) => {
-            // console.log("single product", p);
-            // 1 load single proudct
-            console.log('Product ', p.data.title)
             setTitle(p.data.title);
             const draft = localStorage.getItem(`product-detail:${slug}`);
             setDetail(draft ? JSON.parse(draft) : (p.data.detail || ""));

@@ -9,7 +9,6 @@ const FileUpload = ({ values, setValues, setLoading }) => {
     const { user } = useSelector((state) => ({ ...state }));
     
     const fileUploadAndResize = (e) => {
-        //console.log(e.target.files);
         // resize
         let files = e.target.files; // 3
         let allUploadedFiles = values.images;
@@ -23,7 +22,6 @@ const FileUpload = ({ values, setValues, setLoading }) => {
                     88,
                     0,
                     (uri) => {
-                        console.log(uri);
                         axios
                             .post(
                                 `${import.meta.env.VITE_API}/uploadimages`,
@@ -35,7 +33,6 @@ const FileUpload = ({ values, setValues, setLoading }) => {
                                 }
                             )
                             .then((res) => {
-                                console.log("IMAGE UPLOAD RES DATA", res);
                                 setLoading(false);
                                 allUploadedFiles.push(res.data);
 
@@ -43,7 +40,6 @@ const FileUpload = ({ values, setValues, setLoading }) => {
                             })
                             .catch((err) => {
                                 setLoading(false);
-                                console.log("CLOUDINARY UPLOAD ERR", err);
                             });
                     },
                     "base64"
@@ -63,7 +59,6 @@ const FileUpload = ({ values, setValues, setLoading }) => {
             setLoading(false);
             return;
         }
-        // console.log("remove image", public_id);
         axios
             .post(
                 `${import.meta.env.VITE_API}/removeimage`,
@@ -83,7 +78,6 @@ const FileUpload = ({ values, setValues, setLoading }) => {
                 setValues({ ...values, images: filteredImages });
             })
             .catch((err) => {
-                console.log(err);
                 setLoading(false);
             });
     };

@@ -12,11 +12,9 @@ const AdminRoute = ({ component }) => {
         if (user && user.token) {
             currentAdmin()
                 .then((res) => {
-                    console.log("CURRENT ADMIN RES", res);
                     setOk(true);
                 })
                 .catch((err) => {
-                    console.log("ADMIN ROUTE ERR", err);
                     setOk(false);
                 });
         }

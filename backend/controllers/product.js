@@ -169,8 +169,6 @@ exports.create = async (req, res) => {
     const newProduct = await Product.create(payload);
     res.status(201).json(newProduct);
   } catch (err) {
-    console.log(err);
-    //res.status(400).send("Create product failed");
     res.status(400).json({
       err: err.message,
     });
@@ -206,8 +204,7 @@ exports.remove = async (req, res) => {
     );
     res.json(deleted);
   } catch (err) {
-    console.log(err);
-    return res.staus(400).send("Product delete failed");
+    return res.status(400).send("Product delete failed");
   }
 };
 
@@ -247,31 +244,11 @@ exports.update = async (req, res) => {
     ]);
     res.json(updated);
   } catch (err) {
-    console.log("PRODUCT UPDATE ERROR ----> ", err);
-    // return res.status(400).send("Product update failed");
     res.status(400).json({
       err: err.message,
     });
   }
 };
-
-// WITHOUT PAGINATION
-// exports.list = async (req, res) => {
-//   try {
-//     // createdAt/updatedAt, desc/asc, 3
-//     const { sort, order, limit } = req.body;
-//     const products = await Product.find({})
-//       .populate("category")
-//       .populate("subs")
-//       .sort([[sort, order]])
-//       .limit(limit)
-//       .exec();
-
-//     res.json(products);
-//   } catch (err) {
-//     console.log(err);
-//   }
-// };
 
 // WITH PAGINATION
 exports.list = async (req, res) => {
@@ -296,7 +273,7 @@ exports.list = async (req, res) => {
 
     res.json(products);
   } catch (err) {
-    console.log(err);
+    res.status(400).json({ err: err.message });
   }
 };
 
@@ -325,7 +302,6 @@ exports.productStar = async (req, res) => {
       },
       { new: true }
     ).exec();
-    console.log("ratingAdded", ratingAdded);
     res.json(ratingAdded);
   } else {
     // if user have already left rating, update it
@@ -336,7 +312,6 @@ exports.productStar = async (req, res) => {
       { $set: { "ratings.$.star": star } },
       { new: true }
     ).exec();
-    console.log("ratingUpdated", ratingUpdated);
     res.json(ratingUpdated);
   }
 };
@@ -384,7 +359,7 @@ const handlePrice = async (req, res, price) => {
 
     res.json(products);
   } catch (err) {
-    console.log(err);
+    res.status(400).json({ err: err.message });
   }
 };
 
@@ -398,7 +373,7 @@ const handleCategory = async (req, res, category) => {
 
     res.json(products);
   } catch (err) {
-    console.log(err);
+    res.status(400).json({ err: err.message });
   }
 };
 
@@ -417,13 +392,13 @@ const handleStar = (req, res, stars) => {
   ])
     .limit(12)
     .exec((err, aggregates) => {
-      if (err) console.log("AGGREGATE ERROR", err);
+      if (err) return res.status(400).json({ err: err.message });
       Product.find({ _id: aggregates })
         .populate("category", "_id name")
         .populate("subs", "_id name")
         .populate("postedBy", "_id name")
         .exec((err, products) => {
-          if (err) console.log("PRODUCT AGGREGATE ERROR", err);
+          if (err) return res.status(400).json({ err: err.message });
           res.json(products);
         });
     });

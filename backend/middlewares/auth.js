@@ -14,7 +14,6 @@ exports.optionalAuth = async (req, _res, next) => {
 };
 
 exports.authCheck = async (req, res, next) => {
-    // console.log(req.headers); //token
     try {
         const session = await getAuthSession(req);
         if (!session?.user?.email) {

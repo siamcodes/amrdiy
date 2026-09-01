@@ -15,7 +15,6 @@ const Wishlist = () => {
 
     const loadWishlist = () =>
         getWishlist(user.token).then((res) => {
-            // console.log(res);
             setWishlist(res.data.wishlist);
         });
 

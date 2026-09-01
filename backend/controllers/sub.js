@@ -6,7 +6,6 @@ const slugify = require("slugify");
 exports.create = async (req, res) => {
     try {
         const { name, parent } = req.body;
-        // res.json(await new Sub({ name, parent, slug: slugify(name) }).save());
 
         let strToThaiSlug = function (str) {
             return str.replace(/\s+/g, '-')     // Replace spaces with -
@@ -21,7 +20,6 @@ exports.create = async (req, res) => {
 
         res.json(await new Sub({ name, parent, slug: req.body.slug }).save());
     } catch (err) {
-        console.log("SUB CREATE ERR-->", err);
         res.status(400).send("Create sub failed");
     }
 };

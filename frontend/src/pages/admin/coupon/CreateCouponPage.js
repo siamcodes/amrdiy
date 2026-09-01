@@ -30,7 +30,6 @@ const CreateCouponPage = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         setLoading(true);
-        // console.table(name, expiry, discount);
         createCoupon({ name, expiry, discount }, user.token)
             .then((res) => {
                 setLoading(false);
@@ -40,7 +39,7 @@ const CreateCouponPage = () => {
                 setExpiry("");
                 toast.success(`"${res.data.name}" is created`);
             })
-            .catch((err) => console.log("create coupon err", err));
+            .catch(() => setLoading(false));
     };
 
     const handleRemove = (couponId) => {
@@ -52,7 +51,7 @@ const CreateCouponPage = () => {
                     setLoading(false);
                     toast.error(`Coupon "${res.data.name}" deleted`);
                 })
-                .catch((err) => console.log(err));
+                .catch(() => setLoading(false));
         }
     };
 

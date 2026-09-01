@@ -12,10 +12,8 @@ const toSlug = (value) => value
 exports.create = async (req, res) => {
     try {
         const { name, parent } = req.body;
-        //res.json(await new Generation({ name, parent, slug: slugify(name) }).save());
         res.json(await new Generation({ name, parent, slug: toSlug(name) }).save());
     } catch (err) {
-        console.log("Generation CREATE ERR-->", err);
         res.status(400).send("Create generation failed");
     }
 };

@@ -83,13 +83,10 @@ const ProductCreate = () => {
 
     createProduct(values, user.token)
       .then((res) => {
-        console.log(res);
         window.alert(`"${res.data.title}" is created`);
         window.location.reload();
       })
       .catch((err) => {
-        console.log(err);
-        // if (err.response.status === 400) toast.error(err.response.data);
         toast.error(err.response.data.err);
         setLoading(false);
       });
@@ -97,11 +94,9 @@ const ProductCreate = () => {
 
   const handleChange = (e) => {
     setValues({ ...values, [e.target.name]: e.target.value });
-    // console.log(e.target.name, " ----- ", e.target.value);
   };
 
   const handleCategoryChange = (e) => {
-    console.log("CLICKED CATEGORY", e.target.value);
     setValues((current) => ({
       ...current,
       subs: [],
@@ -109,7 +104,6 @@ const ProductCreate = () => {
       category: e.target.value,
     }));
     getCategorySubs(e.target.value).then((res) => {
-      console.log("SUB OPTIONS ON CATEGORY CLICK", res);
       setSubOptions(res.data);
     });
     setShowSub(true);
@@ -124,7 +118,6 @@ const ProductCreate = () => {
       brand: selectedBrand?.name || "No Brand",
     }));
     getBrandGenerations(e.target.value).then((res) => {
-      console.log("GENERATION OPTIONS ON BRAND CLICK", res);
       setGenerationOptions(res.data);
     });
     setShowGeneration(true);

@@ -46,7 +46,6 @@ const SingleProduct = ({ product, onStarClick, star }) => {
             // remove duplicates
             let unique = _.uniqWith(cart, _.isEqual);
             // save to local storage
-            // console.log('unique', unique)
             localStorage.setItem("cart", JSON.stringify(unique));
             // show tooltip
             setTooltip("Added");
@@ -66,7 +65,6 @@ const SingleProduct = ({ product, onStarClick, star }) => {
     const handleAddToWishlist = (e) => {
         e.preventDefault();
         addToWishlist(product._id, user.token).then((res) => {
-            console.log("ADDED TO WISHLIST", res.data);
             toast.success("Added to wishlist");
             navigate("/user/wishlist");
         });

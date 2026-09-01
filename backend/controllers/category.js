@@ -23,7 +23,6 @@ exports.create = async (req, res) => {
 
         res.json(await new Category({ name, slug: req.body.slug }).save());
     } catch (err) {
-        // console.log(err);
         res.status(400).send("Create category failed");
     }
 };

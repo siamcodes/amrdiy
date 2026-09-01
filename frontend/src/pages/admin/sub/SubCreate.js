@@ -31,26 +31,21 @@ const SubCreate = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // console.log(name);
         setLoading(true);
         createSub({ name, parent: category }, user.token)
             .then((res) => {
-                // console.log(res)
                 setLoading(false);
                 setName("");
                 toast.success(`"${res.data.name}" is created`);
                 loadSubs();
             })
             .catch((err) => {
-                console.log(err);
                 setLoading(false);
                 if (err.response.status === 400) toast.error(err.response.data);
             });
     };
 
     const handleRemove = async (slug) => {
-        // let answer = window.confirm("Delete?");
-        // console.log(answer, slug);
         if (window.confirm("Delete?")) {
             setLoading(true);
             removeSub(slug, user.token)
