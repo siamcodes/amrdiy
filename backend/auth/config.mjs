@@ -25,9 +25,6 @@ const oauthProvider = (factory, idName, secretName) => {
     ? factory({
         clientId,
         clientSecret,
-        // Allow a verified OAuth identity to attach to an existing credentials
-        // user when the provider returns the same email address.
-        allowDangerousEmailAccountLinking: true,
       })
     : null;
 };
@@ -40,7 +37,6 @@ const facebookProvider = () => {
   const provider = Facebook({
     clientId,
     clientSecret,
-    allowDangerousEmailAccountLinking: true,
   });
   const configId = process.env.AUTH_FACEBOOK_CONFIG_ID?.trim();
 
@@ -109,7 +105,7 @@ export const authConfig = {
   ].filter(Boolean),
   secret: required("AUTH_SECRET"),
   trustHost: true,
-  session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
+  session: { strategy: "jwt", maxAge: 7 * 24 * 60 * 60 },
   callbacks: {
     async redirect({ url, baseUrl }) {
       const clientOrigin = new URL(required("CLIENT_URL")).origin;

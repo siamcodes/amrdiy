@@ -51,10 +51,10 @@ const History = () => {
           ]} />
           <Table rowKey={(item) => item._id || item.product?._id} size="small" pagination={false}
             style={{ marginTop: 16 }} dataSource={order.products} columns={[
-              { title: "สินค้า", render: (_, item) => <Space><Image preview={false} width={48} height={48} src={item.product?.images?.[0]?.url} />{item.product?.title || "สินค้าถูกลบ"}</Space> },
+              { title: "สินค้า", render: (_, item) => <Space><Image preview={false} width={48} height={48} src={item.image || item.product?.images?.[0]?.url} />{item.title || item.product?.title || "สินค้าถูกลบ"}</Space> },
               { title: "สี", dataIndex: "color" },
               { title: "จำนวน", dataIndex: "count" },
-              { title: "ราคา", render: (_, item) => `฿${Number(item.product?.price || 0).toLocaleString()}` },
+              { title: "ราคา/หน่วย", render: (_, item) => `฿${Number(item.price ?? item.product?.price ?? 0).toLocaleString("th-TH", { minimumFractionDigits: 2 })}` },
             ]} />
 
           {!!order.packages?.length && <Card size="small" title={<><TruckOutlined /> ติดตามพัสดุ</>} style={{ marginTop: 16 }}>

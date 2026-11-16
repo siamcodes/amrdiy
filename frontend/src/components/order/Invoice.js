@@ -25,20 +25,20 @@ const Invoice = ({ order }) => (
                     <Text style={styles.tableCell}>Brand</Text>
                     <Text style={styles.tableCell}>Color</Text>
                 </View>
-                {order.products.map(({ product, count }, index) => (
-                    <View style={styles.tableRow} key={product._id || index} wrap={false}>
-                        <Text style={styles.tableCell}>{product.title}</Text>
-                        <Text style={styles.tableCell}>{product.price}</Text>
+                {order.products.map(({ product, count, price, title, color }, index) => (
+                    <View style={styles.tableRow} key={product?._id || index} wrap={false}>
+                        <Text style={styles.tableCell}>{title || product?.title || "Product"}</Text>
+                        <Text style={styles.tableCell}>{Number(price ?? product?.price ?? 0).toFixed(2)}</Text>
                         <Text style={styles.tableCell}>{count}</Text>
-                        <Text style={styles.tableCell}>{product.brand}</Text>
-                        <Text style={styles.tableCell}>{product.color}</Text>
+                        <Text style={styles.tableCell}>{product?.brand || "-"}</Text>
+                        <Text style={styles.tableCell}>{color || "-"}</Text>
                     </View>
                 ))}
             </View>
             <Text style={styles.text}>
                 <Text>
                     Date: {"                "}
-                    {new Date(order.paymentIntent.created * 1000).toLocaleString()}
+                    {new Date((order.paymentIntent?.created ? order.paymentIntent.created * 1000 : order.createdAt)).toLocaleString()}
                 </Text>
                 {"\n"}
                 <Text>
@@ -53,7 +53,7 @@ const Invoice = ({ order }) => (
                 {"\n"}
                 <Text>
                     Total Paid: {"       "}
-                    {order.paymentIntent.amount}
+                    {(Number(order.payment?.amount ?? order.paymentIntent?.amount ?? 0) / 100).toFixed(2)}
                     {" THB"}
                 </Text>
             </Text>
